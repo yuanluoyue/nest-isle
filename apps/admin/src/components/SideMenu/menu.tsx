@@ -36,6 +36,8 @@ import {
   ThunderboltOutlined,
   UnorderedListOutlined,
   WarningOutlined,
+  BookOutlined,
+  LoginOutlined,
 } from '@ant-design/icons';
 import type { MenuItem } from '../../types/api';
 
@@ -75,6 +77,8 @@ const iconMap: Record<string, React.ReactNode> = {
   ThunderboltOutlined: <ThunderboltOutlined />,
   UnorderedListOutlined: <UnorderedListOutlined />,
   WarningOutlined: <WarningOutlined />,
+  BookOutlined: <BookOutlined />,
+  LoginOutlined: <LoginOutlined />,
 };
 
 export const getIcon = (iconName: string | null): React.ReactNode | undefined => {

@@ -4,7 +4,7 @@ export * from './sys-menu.schema';
 export * from './sys-dept.schema';
 export * from './sys-post.schema';
 export * from './sys-dict-type.schema';
-export * from './sys-dict-data.schema';
+export * from './sys-dict-item.schema';
 export * from './sys-config.schema';
 export * from './sys-user-role.schema';
 export * from './sys-role-menu.schema';

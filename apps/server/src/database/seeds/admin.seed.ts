@@ -226,6 +226,51 @@ async function seed() {
     }
   }
 
+  // 字典管理菜单
+  let dictMenu = await db.query.sysMenu.findFirst({ where: eq(schema.sysMenu.name, '字典管理') });
+  if (!dictMenu) {
+    const [created] = await db.insert(schema.sysMenu).values({
+      parentId: systemMenu.id,
+      name: '字典管理',
+      type: 1,
+      path: '/system/dict',
+      component: 'system/dict',
+      permission: 'system:dict:list',
+      icon: 'BookOutlined',
+      sort: 4,
+      visible: 0,
+      status: 0,
+    }).returning();
+    dictMenu = created;
+    console.log('Created menu: 字典管理');
+  }
+
+  // 字典管理按钮权限
+  const dictButtons = [
+    { name: '字典类型新增', permission: 'system:dict:type:create', sort: 1 },
+    { name: '字典类型编辑', permission: 'system:dict:type:update', sort: 2 },
+    { name: '字典类型删除', permission: 'system:dict:type:delete', sort: 3 },
+    { name: '字典项新增', permission: 'system:dict:item:create', sort: 4 },
+    { name: '字典项编辑', permission: 'system:dict:item:update', sort: 5 },
+    { name: '字典项删除', permission: 'system:dict:item:delete', sort: 6 },
+  ];
+
+  for (const btn of dictButtons) {
+    const existing = await db.query.sysMenu.findFirst({ where: eq(schema.sysMenu.permission, btn.permission) });
+    if (!existing) {
+      await db.insert(schema.sysMenu).values({
+        parentId: dictMenu.id,
+        name: btn.name,
+        type: 2,
+        permission: btn.permission,
+        sort: btn.sort,
+        visible: 0,
+        status: 0,
+      });
+      console.log(`Created button: ${btn.name}`);
+    }
+  }
+
   // 系统监控目录
   let monitorMenu = await db.query.sysMenu.findFirst({ where: eq(schema.sysMenu.name, '系统监控') });
   if (!monitorMenu) {

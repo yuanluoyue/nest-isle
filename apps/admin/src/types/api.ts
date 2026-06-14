@@ -271,3 +271,87 @@ export interface UpdateProfileParams {
   gender?: number;
   avatar?: string;
 }
+
+// ============ 字典管理 ============
+
+export interface DictTypeItem {
+  id: string;
+  name: string | null;
+  code: string | null;
+  status: number | null;
+  remark: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface DictTypeListResult {
+  list: DictTypeItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface CreateDictTypeParams {
+  name: string;
+  code: string;
+  status?: number;
+  remark?: string;
+}
+
+export interface UpdateDictTypeParams {
+  name?: string;
+  code?: string;
+  status?: number;
+  remark?: string;
+}
+
+export interface QueryDictTypeParams {
+  page?: number;
+  pageSize?: number;
+  name?: string;
+  code?: string;
+  status?: number;
+}
+
+export interface DictItem {
+  id: string;
+  dictTypeId: string | null;
+  label: string | null;
+  value: string | null;
+  sort: number | null;
+  color: string | null;
+  status: number | null;
+  extra: Record<string, unknown> | null;
+  remark: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface CreateDictItemParams {
+  dictTypeId: string;
+  label: string;
+  value: string;
+  sort?: number;
+  color?: string;
+  status?: number;
+  extra?: Record<string, unknown>;
+  remark?: string;
+}
+
+export interface UpdateDictItemParams {
+  dictTypeId?: string;
+  label?: string;
+  value?: string;
+  sort?: number;
+  color?: string;
+  status?: number;
+  extra?: Record<string, unknown>;
+  remark?: string;
+}
+
+export interface QueryDictItemParams {
+  dictTypeId?: string;
+  dictTypeCode?: string;
+  label?: string;
+  status?: number;
+}

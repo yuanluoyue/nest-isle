@@ -19,6 +19,7 @@ const DashboardPage = React.lazy(() => import('../pages/dashboard'));
 const UserPage = React.lazy(() => import('../pages/system/user'));
 const RolePage = React.lazy(() => import('../pages/system/role'));
 const MenuPage = React.lazy(() => import('../pages/system/menu'));
+const DictPage = React.lazy(() => import('../pages/system/dict'));
 const OperateLogPage = React.lazy(() => import('../pages/monitor/operate-log'));
 const LoginLogPage = React.lazy(() => import('../pages/monitor/login-log'));
 const ProfilePage = React.lazy(() => import('../pages/profile'));
@@ -48,6 +49,7 @@ export const routeObjects: RouteObject[] = [
           { path: 'user', element: LazyLoad(UserPage) },
           { path: 'role', element: LazyLoad(RolePage) },
           { path: 'menu', element: LazyLoad(MenuPage) },
+          { path: 'dict', element: LazyLoad(DictPage) },
         ],
       },
       {
