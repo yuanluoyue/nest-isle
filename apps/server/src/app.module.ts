@@ -7,6 +7,7 @@ import { AuthModule } from './core/auth/auth.module';
 import { CacheModule } from './core/cache/cache.module';
 import { LoggerModule } from './core/logger/logger.module';
 import { QueueModule } from './core/queue/queue.module';
+import { StorageModule } from './core/storage/storage.module';
 import { AuthFeatureModule } from './modules/auth/auth.module';
 import { SystemModule } from './modules/system/system.module';
 import { MonitorModule } from './modules/monitor/monitor.module';
@@ -25,6 +26,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     CacheModule,
     LoggerModule,
     QueueModule,
+    StorageModule,
     AuthModule,
     AuthFeatureModule,
     SystemModule,

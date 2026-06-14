@@ -3,6 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './jwt.strategy';
+import { SessionFeatureModule } from '../../modules/monitor/session/session.module';
 import configuration from '../../config/configuration';
 
 @Module({
@@ -24,6 +25,7 @@ import configuration from '../../config/configuration';
         },
       }),
     }),
+    SessionFeatureModule,
   ],
   providers: [JwtStrategy],
   exports: [JwtModule, PassportModule],

@@ -4,6 +4,9 @@ import type { LoginParams, LoginResult, UserProfile, MenuItem, UpdateProfilePara
 export const login = (data: LoginParams) =>
   request.post<any, LoginResult>('/auth/login', data);
 
+export const logout = () =>
+  request.post<any, void>('/auth/logout');
+
 export const getProfile = () =>
   request.get<any, UserProfile>('/auth/profile');
 

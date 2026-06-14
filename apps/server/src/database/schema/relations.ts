@@ -7,6 +7,7 @@ import { sysUserRole } from './sys-user-role.schema';
 import { sysRoleMenu } from './sys-role-menu.schema';
 import { sysJob } from './sys-job.schema';
 import { sysJobLog } from './sys-job-log.schema';
+import { sysSession } from './sys-session.schema';
 
 export const sysUserRelations = relations(sysUser, ({ many, one }) => ({
   userRoles: many(sysUserRole),
@@ -59,5 +60,12 @@ export const sysJobLogRelations = relations(sysJobLog, ({ one }) => ({
   job: one(sysJob, {
     fields: [sysJobLog.jobId],
     references: [sysJob.id],
+  }),
+}));
+
+export const sysSessionRelations = relations(sysSession, ({ one }) => ({
+  user: one(sysUser, {
+    fields: [sysSession.userId],
+    references: [sysUser.id],
   }),
 }));

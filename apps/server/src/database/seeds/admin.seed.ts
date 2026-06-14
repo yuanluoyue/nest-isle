@@ -544,7 +544,54 @@ async function seed() {
     }
   }
 
-  // 给 admin 角色分配菜单权限
+  // 会话管理菜单
+  let sessionMenu = await db.query.sysMenu.findFirst({
+    where: eq(schema.sysMenu.name, '会话管理'),
+  });
+  if (!sessionMenu) {
+    const [created] = await db
+      .insert(schema.sysMenu)
+      .values({
+        parentId: monitorMenu.id,
+        name: '会话管理',
+        type: 1,
+        path: '/monitor/session',
+        component: 'monitor/session',
+        permission: 'monitor:session:list',
+        icon: 'OnlineOutlined',
+        sort: 4,
+        visible: 0,
+        status: 0,
+      })
+      .returning();
+    sessionMenu = created;
+    console.log('Created menu: 会话管理');
+  }
+
+  // 会话管理按钮权限
+  const sessionButtons = [
+    { name: '强制下线', permission: 'monitor:session:force-logout', sort: 1 },
+  ];
+
+  for (const btn of sessionButtons) {
+    const existing = await db.query.sysMenu.findFirst({
+      where: eq(schema.sysMenu.permission, btn.permission),
+    });
+    if (!existing) {
+      await db.insert(schema.sysMenu).values({
+        parentId: sessionMenu.id,
+        name: btn.name,
+        type: 2,
+        permission: btn.permission,
+        sort: btn.sort,
+        visible: 0,
+        status: 0,
+      });
+      console.log(`Created button: ${btn.name}`);
+    }
+  }
+
+  // 给 admin 角色分配菜单权限（在所有菜单创建之后）
   const menus = await db.query.sysMenu.findMany();
   for (const menu of menus) {
     const existing = await db.query.sysRoleMenu.findFirst({

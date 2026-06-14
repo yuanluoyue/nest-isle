@@ -3,39 +3,19 @@ import { ConfigService } from '@nestjs/config';
 import { and, eq, isNull, sum } from 'drizzle-orm';
 import { sysFile } from '../../database/schema';
 import { DatabaseService } from '../../database/database.service';
-import { StorageAdapter, MinioAdapter, StorageConfig } from './storage';
+import { StorageAdapter } from '../../core/storage/storage.adapter';
 
 @Injectable()
 export class FileService {
-  private readonly storageAdapter: StorageAdapter;
   private readonly bucket: string;
   private readonly logger = new Logger(FileService.name);
 
   constructor(
     private configService: ConfigService,
     private databaseService: DatabaseService,
+    private storageAdapter: StorageAdapter,
   ) {
-    const storageConfig: StorageConfig = {
-      endpoint: this.configService.get<string>('minio.endpoint', 'localhost'),
-      port: this.configService.get<number>('minio.port', 9000),
-      accessKey: this.configService.get<string>(
-        'minio.accessKey',
-        'minioadmin',
-      ),
-      secretKey: this.configService.get<string>(
-        'minio.secretKey',
-        'minioadmin',
-      ),
-      useSSL: this.configService.get<boolean>('minio.useSSL', false),
-      bucket: this.configService.get<string>('minio.bucket', 'nest-isle'),
-      publicUrl: this.configService.get<string>(
-        'minio.publicUrl',
-        'http://localhost:9000',
-      ),
-    };
-
-    this.bucket = storageConfig.bucket;
-    this.storageAdapter = new MinioAdapter(storageConfig);
+    this.bucket = this.configService.get<string>('minio.bucket', 'nest-isle');
 
     // 启动时确保 bucket 存在
     this.storageAdapter.ensureBucket(this.bucket).catch((err) => {
@@ -92,10 +72,6 @@ export class FileService {
     return { totalSize: Number(result.totalSize) || 0 };
   }
 
-  /**
-   * 根据 URL 删除文件（软删 sys_file 记录 + 删除存储对象）
-   * 仅在 url 命中 sys_file 中未删除的记录时才执行
-   */
   async deleteByUrl(url: string): Promise<void> {
     if (!url) return;
 
@@ -108,13 +84,11 @@ export class FileService {
       return;
     }
 
-    // 先软删数据库记录
     await this.db
       .update(sysFile)
       .set({ deletedAt: new Date() })
       .where(eq(sysFile.id, record.id));
 
-    // 再删存储对象（失败不影响业务，仅记录日志）
     if (record.bucket && record.path) {
       try {
         await this.storageAdapter.removeObject(record.bucket, record.path);

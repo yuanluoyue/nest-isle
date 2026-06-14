@@ -529,3 +529,39 @@ export interface QueryConfigParams {
   type?: number;
   status?: number;
 }
+
+// ============ 会话管理 ============
+
+export interface SessionItem {
+  id: string;
+  sid: string | null;
+  userId: string | null;
+  userType: string | null;
+  ip: string | null;
+  country: string | null;
+  city: string | null;
+  userAgent: string | null;
+  browser: string | null;
+  os: string | null;
+  device: string | null;
+  platform: string | null;
+  loginAt: string | null;
+  lastActiveAt: string | null;
+  logoutAt: string | null;
+  createdAt: string | null;
+  online: boolean;
+}
+
+export interface SessionListResult {
+  list: SessionItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface QuerySessionParams {
+  page?: number;
+  pageSize?: number;
+  userType?: string;
+  ip?: string;
+}

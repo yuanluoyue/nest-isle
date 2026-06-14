@@ -10,6 +10,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/auth';
 import { useMenuStore } from '../stores/menu';
 import { useProfile } from '../hooks/useProfile';
+import { logout as logoutApi } from '../api/auth';
 import SideMenu from '../components/SideMenu';
 import type { MenuItem } from '../types/api';
 
@@ -56,7 +57,12 @@ const AdminLayout = () => {
     [menus, location.pathname],
   );
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await logoutApi();
+    } catch {
+      // 忽略登出接口错误，仍然清理本地状态
+    }
     clearAuth();
     useMenuStore.getState().clearMenus();
     navigate('/login');

@@ -44,6 +44,14 @@ export class AuthController {
     return this.authService.login(dto, { ip, userAgent });
   }
 
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '用户登出' })
+  logout(@CurrentUser() user: { id: string; sid: string }) {
+    return this.authService.logout(user.sid);
+  }
+
   @Get('profile')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()

@@ -19,6 +19,7 @@ import { DatabaseService } from '../../database/database.service';
 import { CaptchaService } from './captcha.service';
 import { FileService } from '../file/file.service';
 import { LoginLogService } from '../monitor/login-log/login-log.service';
+import { SessionService } from '../monitor/session/session.service';
 
 export interface LoginContext {
   ip?: string | null;
@@ -34,6 +35,7 @@ export class AuthService {
     private captchaService: CaptchaService,
     private fileService: FileService,
     private loginLogService: LoginLogService,
+    private sessionService: SessionService,
   ) {}
 
   private get db() {
@@ -84,14 +86,24 @@ export class AuthService {
       throw new UnauthorizedException('账号已被禁用');
     }
 
+    // 创建 session
+    const session = await this.sessionService.create({
+      userId: user.id,
+      userType: 'admin',
+      ip,
+      userAgent,
+    });
+
+    // 签发 JWT（包含 sid 和 type）
     const { accessToken, refreshToken } = await this.generateTokens(
       user.id,
-      user.username!,
+      session.sid,
+      'admin',
     );
 
     await this.loginLogService.record({
       userId: user.id,
-      username: user.username,
+      username: dto.username,
       ip,
       userAgent,
       status: 0,
@@ -142,7 +154,6 @@ export class AuthService {
       avatar?: string;
     },
   ) {
-    // 如果更新了头像，先取出旧头像 URL，用于后续删除
     let oldAvatar: string | null = null;
     if (dto.avatar !== undefined) {
       const current = await this.db.query.sysUser.findFirst({
@@ -164,7 +175,6 @@ export class AuthService {
       })
       .where(eq(sysUser.id, userId));
 
-    // 头像有变更且与新头像不同，删除旧资源
     if (dto.avatar !== undefined && oldAvatar && oldAvatar !== dto.avatar) {
       await this.fileService.deleteByUrl(oldAvatar);
     }
@@ -175,19 +185,30 @@ export class AuthService {
   async refresh(refreshToken: string) {
     try {
       const payload = this.jwtService.verify(refreshToken);
+      // 校验 session 是否仍在 Redis 中有效
+      const session = await this.sessionService.validate(payload.sid);
+      if (!session) {
+        throw new UnauthorizedException('会话已过期，请重新登录');
+      }
       const { accessToken, refreshToken: newRefreshToken } =
-        await this.generateTokens(payload.sub, payload.username);
+        await this.generateTokens(payload.sub, payload.sid, payload.type);
 
       return {
         accessToken,
         refreshToken: newRefreshToken,
       };
-    } catch {
+    } catch (error) {
+      if (error instanceof UnauthorizedException) throw error;
       throw new UnauthorizedException('刷新令牌无效或已过期');
     }
   }
 
-  private async generateTokens(userId: string, username: string) {
+  /** 登出 */
+  async logout(sid: string) {
+    await this.sessionService.logout(sid);
+  }
+
+  private async generateTokens(userId: string, sid: string, type: string) {
     const secret = this.configService.get<string>(
       'jwt.secret',
       configuration().jwt.secret,
@@ -197,21 +218,20 @@ export class AuthService {
       configuration().jwt.expiresIn,
     );
 
-    const accessToken = this.jwtService.sign({ sub: userId, username }, {
-      secret,
-      expiresIn,
-    } as any);
+    const accessToken = this.jwtService.sign(
+      { sub: userId, sid, type },
+      { secret, expiresIn } as any,
+    );
 
-    const refreshToken = this.jwtService.sign({ sub: userId, username }, {
-      secret,
-      expiresIn: '30d',
-    } as any);
+    const refreshToken = this.jwtService.sign(
+      { sub: userId, sid, type },
+      { secret, expiresIn: '30d' } as any,
+    );
 
     return { accessToken, refreshToken };
   }
 
   async getUserMenus(userId: string) {
-    // 1. 获取用户所有角色ID
     const userRoles = await this.db.query.sysUserRole.findMany({
       where: eq(sysUserRole.userId, userId),
     });
@@ -223,7 +243,6 @@ export class AuthService {
       return [];
     }
 
-    // 2. 获取角色关联的所有菜单ID
     const roleMenus = await this.db.query.sysRoleMenu.findMany({
       where: inArray(sysRoleMenu.roleId, roleIds),
     });
@@ -235,7 +254,6 @@ export class AuthService {
       return [];
     }
 
-    // 3. 查询菜单详情（只查目录和菜单，不查按钮；状态正常；未删除）
     const menus = await this.db.query.sysMenu.findMany({
       where: and(
         inArray(sysMenu.id, menuIds),
@@ -259,7 +277,6 @@ export class AuthService {
       orderBy: asc(sysMenu.sort),
     });
 
-    // 4. 构建树形结构
     return this.buildTree(menus);
   }
 

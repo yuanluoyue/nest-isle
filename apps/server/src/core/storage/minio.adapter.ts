@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common';
 import * as Minio from 'minio';
-import { StorageAdapter } from './storage-adapter';
-import { UploadResult, StorageConfig } from './storage-adapter.interface';
+import { StorageAdapter } from './storage.adapter';
+import { UploadResult, StorageConfig } from './storage.adapter';
 
 export class MinioAdapter extends StorageAdapter {
   private readonly client: Minio.Client;
@@ -59,7 +59,6 @@ export class MinioAdapter extends StorageAdapter {
       const exists = await this.client.bucketExists(bucket);
       if (!exists) {
         await this.client.makeBucket(bucket);
-        // 设置桶策略为公开读取
         const policy = {
           Version: '2012-10-17',
           Statement: [

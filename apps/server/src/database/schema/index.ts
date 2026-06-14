@@ -14,4 +14,5 @@ export * from './sys-job.schema';
 export * from './sys-job-log.schema';
 export * from './sys-file.schema';
 export * from './sys-notice.schema';
+export * from './sys-session.schema';
 export * from './relations';
