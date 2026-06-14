@@ -38,6 +38,7 @@
     "class-validator": "^0.15.1",
     "cron": "^4.4.0",
     "drizzle-orm": "^0.45.2",
+    "ioredis": "^5.11.1",
     "minio": "^8.0.7",
     "nest-winston": "^1.10.2",
     "passport": "^0.7.0",

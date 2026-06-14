@@ -373,6 +373,56 @@ async function seed() {
     }
   }
 
+  // 系统配置菜单
+  let configMenu = await db.query.sysMenu.findFirst({
+    where: eq(schema.sysMenu.name, '系统配置'),
+  });
+  if (!configMenu) {
+    const [created] = await db
+      .insert(schema.sysMenu)
+      .values({
+        parentId: systemMenu.id,
+        name: '系统配置',
+        type: 1,
+        path: '/system/config',
+        component: 'system/config',
+        permission: 'system:config:list',
+        icon: 'SettingFilled',
+        sort: 6,
+        visible: 0,
+        status: 0,
+      })
+      .returning();
+    configMenu = created;
+    console.log('Created menu: 系统配置');
+  }
+
+  // 系统配置按钮权限
+  const configButtons = [
+    { name: '配置新增', permission: 'system:config:create', sort: 1 },
+    { name: '配置编辑', permission: 'system:config:update', sort: 2 },
+    { name: '配置删除', permission: 'system:config:delete', sort: 3 },
+    { name: '刷新缓存', permission: 'system:config:refresh-cache', sort: 4 },
+  ];
+
+  for (const btn of configButtons) {
+    const existing = await db.query.sysMenu.findFirst({
+      where: eq(schema.sysMenu.permission, btn.permission),
+    });
+    if (!existing) {
+      await db.insert(schema.sysMenu).values({
+        parentId: configMenu.id,
+        name: btn.name,
+        type: 2,
+        permission: btn.permission,
+        sort: btn.sort,
+        visible: 0,
+        status: 0,
+      });
+      console.log(`Created button: ${btn.name}`);
+    }
+  }
+
   // 系统监控目录
   let monitorMenu = await db.query.sysMenu.findFirst({
     where: eq(schema.sysMenu.name, '系统监控'),

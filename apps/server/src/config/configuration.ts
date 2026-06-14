@@ -20,4 +20,10 @@ export default () => ({
     bucket: process.env.MINIO_BUCKET ?? 'nest-isle',
     publicUrl: process.env.MINIO_PUBLIC_URL ?? 'http://localhost:9000',
   },
+  redis: {
+    host: process.env.REDIS_HOST ?? 'localhost',
+    port: parseInt(process.env.REDIS_PORT ?? '6379', 10),
+    password: process.env.REDIS_PASSWORD ?? '',
+    db: parseInt(process.env.REDIS_DB ?? '0', 10),
+  },
 });

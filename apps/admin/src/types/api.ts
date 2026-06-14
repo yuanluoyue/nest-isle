@@ -481,3 +481,51 @@ export interface QueryJobLogParams {
   handler?: string;
   status?: number;
 }
+
+// ============ 系统配置 ============
+
+export interface ConfigItem {
+  id: string;
+  name: string | null;
+  key: string | null;
+  value: string | null;
+  type: number | null; // 0=系统内置 1=自定义
+  status: number | null; // 0=启用 1=禁用
+  remark: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface ConfigListResult {
+  list: ConfigItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface CreateConfigParams {
+  name: string;
+  key: string;
+  value: string;
+  type?: number;
+  status?: number;
+  remark?: string;
+}
+
+export interface UpdateConfigParams {
+  name?: string;
+  key?: string;
+  value?: string;
+  type?: number;
+  status?: number;
+  remark?: string;
+}
+
+export interface QueryConfigParams {
+  page?: number;
+  pageSize?: number;
+  name?: string;
+  key?: string;
+  type?: number;
+  status?: number;
+}
