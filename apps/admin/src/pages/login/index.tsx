@@ -3,7 +3,7 @@ import { Form, Input, Button, Card, Checkbox, message } from 'antd';
 import { UserOutlined, LockOutlined, SafetyOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../../api/auth';
-import { setToken, setRefreshToken, saveRememberPassword, getRememberPassword, clearRememberPassword, isAuthenticated } from '../../stores/auth';
+import { useAuthStore, saveRememberPassword, getRememberPassword, clearRememberPassword } from '../../stores/auth';
 import { generateCaptcha } from '../../utils/captcha';
 
 const LoginPage = () => {
@@ -12,9 +12,10 @@ const LoginPage = () => {
   const [captchaUrl, setCaptchaUrl] = useState('');
   const [captchaText, setCaptchaText] = useState('');
   const navigate = useNavigate();
+  const { setTokens, setUser, accessToken } = useAuthStore();
 
   useEffect(() => {
-    if (isAuthenticated()) {
+    if (accessToken) {
       navigate('/dashboard');
       return;
     }
@@ -41,8 +42,8 @@ const LoginPage = () => {
     setLoading(true);
     try {
       const result = await login({ username: values.username, password: values.password });
-      setToken(result.accessToken);
-      setRefreshToken(result.refreshToken);
+      setTokens(result.accessToken, result.refreshToken);
+      setUser(result.user);
 
       if (values.remember) {
         saveRememberPassword(values.username, values.password);
@@ -53,7 +54,7 @@ const LoginPage = () => {
       message.success('登录成功');
       navigate('/dashboard');
     } catch (err: any) {
-      message.error(err.response?.data?.message || '登录失败');
+      message.error(err.message || '登录失败');
       refreshCaptcha();
     } finally {
       setLoading(false);

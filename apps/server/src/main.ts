@@ -1,4 +1,4 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { WinstonModule } from 'nest-winston';
@@ -6,7 +6,9 @@ import { AppModule } from './app.module';
 import { TransformInterceptor } from './common/interceptor/transform.interceptor';
 import { AllExceptionsFilter } from './common/filter/all-exceptions.filter';
 import { TraceIdMiddleware } from './common/middleware/trace-id.middleware';
+import { OperateLogInterceptor } from './common/interceptor/operate-log.interceptor';
 import { winstonLoggerConfig } from './core/logger/winston.config';
+import { DatabaseService } from './database/database.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -29,7 +31,10 @@ async function bootstrap() {
       transform: true,
     }),
   );
-  app.useGlobalInterceptors(new TransformInterceptor());
+  app.useGlobalInterceptors(
+    new TransformInterceptor(),
+    new OperateLogInterceptor(app.get(Reflector), app.get(DatabaseService)),
+  );
   app.useGlobalFilters(new AllExceptionsFilter());
 
   const config = new DocumentBuilder()

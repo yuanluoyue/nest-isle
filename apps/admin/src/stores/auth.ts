@@ -1,29 +1,49 @@
-const TOKEN_KEY = 'accessToken';
-const REFRESH_TOKEN_KEY = 'refreshToken';
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import type { UserInfo } from '../types/api';
+
+interface AuthState {
+  accessToken: string | null;
+  refreshToken: string | null;
+  user: UserInfo | null;
+
+  setTokens: (accessToken: string, refreshToken: string) => void;
+  setUser: (user: UserInfo) => void;
+  clearAuth: () => void;
+  isAuthenticated: () => boolean;
+}
+
 const REMEMBER_KEY = 'remember_password';
 
-export function getToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY);
-}
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set, get) => ({
+      accessToken: null,
+      refreshToken: null,
+      user: null,
 
-export function setToken(token: string): void {
-  localStorage.setItem(TOKEN_KEY, token);
-}
+      setTokens: (accessToken, refreshToken) =>
+        set({ accessToken, refreshToken }),
 
-export function getRefreshToken(): string | null {
-  return localStorage.getItem(REFRESH_TOKEN_KEY);
-}
+      setUser: (user) => set({ user }),
 
-export function setRefreshToken(token: string): void {
-  localStorage.setItem(REFRESH_TOKEN_KEY, token);
-}
+      clearAuth: () =>
+        set({ accessToken: null, refreshToken: null, user: null }),
 
-export function clearAuth(): void {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
-}
+      isAuthenticated: () => !!get().accessToken,
+    }),
+    {
+      name: 'auth-storage',
+      partialize: (state) => ({
+        accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
+        user: state.user,
+      }),
+    },
+  ),
+);
 
-export function saveRememberPassword(username: string, password: string): void {
+export function saveRememberPassword(username: string, password: string) {
   localStorage.setItem(REMEMBER_KEY, JSON.stringify({ username, password }));
 }
 
@@ -37,10 +57,6 @@ export function getRememberPassword(): { username: string; password: string } | 
   }
 }
 
-export function clearRememberPassword(): void {
+export function clearRememberPassword() {
   localStorage.removeItem(REMEMBER_KEY);
-}
-
-export function isAuthenticated(): boolean {
-  return !!getToken();
 }
