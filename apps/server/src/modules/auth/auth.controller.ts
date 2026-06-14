@@ -1,5 +1,18 @@
-import { Controller, Post, Get, Put, Body, Req, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import {
+  Controller,
+  Post,
+  Get,
+  Put,
+  Body,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import type { Request } from 'express';
 import { AuthService } from './auth.service';
 import { CaptchaService } from './captcha.service';
@@ -44,7 +57,10 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '修改当前用户信息' })
-  updateProfile(@CurrentUser() user: { id: string }, @Body() dto: UpdateProfileDto) {
+  updateProfile(
+    @CurrentUser() user: { id: string },
+    @Body() dto: UpdateProfileDto,
+  ) {
     return this.authService.updateProfile(user.id, dto);
   }
 

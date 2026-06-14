@@ -38,6 +38,7 @@ import {
   WarningOutlined,
   BookOutlined,
   LoginOutlined,
+  NotificationOutlined,
 } from '@ant-design/icons';
 import type { MenuItem } from '../../types/api';
 
@@ -79,6 +80,7 @@ const iconMap: Record<string, React.ReactNode> = {
   WarningOutlined: <WarningOutlined />,
   BookOutlined: <BookOutlined />,
   LoginOutlined: <LoginOutlined />,
+  NotificationOutlined: <NotificationOutlined />,
 };
 
 export const getIcon = (iconName: string | null): React.ReactNode | undefined => {

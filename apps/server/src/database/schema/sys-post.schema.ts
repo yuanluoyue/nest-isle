@@ -1,4 +1,10 @@
-import { pgTable, uuid, varchar, timestamp, integer } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  uuid,
+  varchar,
+  timestamp,
+  integer,
+} from 'drizzle-orm/pg-core';
 
 export const sysPost = pgTable('sys_post', {
   id: uuid('id').defaultRandom().primaryKey(),

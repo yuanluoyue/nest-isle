@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { eq, like, and, isNull, ilike } from 'drizzle-orm';
 import { sysUser, sysUserRole, sysRole } from '../../../database/schema';
 import { DatabaseService } from '../../../database/database.service';
@@ -17,7 +23,14 @@ export class UserService {
   }
 
   async findAll(query: QueryUserDto) {
-    const { page = 1, pageSize = 10, username, nickname, phone, status } = query;
+    const {
+      page = 1,
+      pageSize = 10,
+      username,
+      nickname,
+      phone,
+      status,
+    } = query;
     const offset = (page - 1) * pageSize;
 
     const conditions = [isNull(sysUser.deletedAt)];
@@ -60,7 +73,13 @@ export class UserService {
         });
         return {
           ...user,
-          roles: userRoles.map((ur) => ur.role ? { id: ur.role.id, name: ur.role.name, code: ur.role.code } : null).filter(Boolean),
+          roles: userRoles
+            .map((ur) =>
+              ur.role
+                ? { id: ur.role.id, name: ur.role.name, code: ur.role.code }
+                : null,
+            )
+            .filter(Boolean),
         };
       }),
     );
@@ -103,7 +122,13 @@ export class UserService {
 
     return {
       ...user,
-      roles: userRoles.map((ur) => ur.role ? { id: ur.role.id, name: ur.role.name, code: ur.role.code } : null).filter(Boolean),
+      roles: userRoles
+        .map((ur) =>
+          ur.role
+            ? { id: ur.role.id, name: ur.role.name, code: ur.role.code }
+            : null,
+        )
+        .filter(Boolean),
     };
   }
 
@@ -115,30 +140,33 @@ export class UserService {
       throw new ConflictException('用户名已存在');
     }
 
-    const [user] = await this.db.insert(sysUser).values({
-      username: dto.username,
-      password: hashSync(dto.password, 10),
-      nickname: dto.nickname,
-      email: dto.email,
-      phone: dto.phone,
-      gender: dto.gender,
-      deptId: dto.deptId,
-      status: dto.status ?? 0,
-      remark: dto.remark,
-    }).returning({
-      id: sysUser.id,
-      username: sysUser.username,
-      nickname: sysUser.nickname,
-      email: sysUser.email,
-      phone: sysUser.phone,
-      gender: sysUser.gender,
-      avatar: sysUser.avatar,
-      deptId: sysUser.deptId,
-      status: sysUser.status,
-      remark: sysUser.remark,
-      createdAt: sysUser.createdAt,
-      updatedAt: sysUser.updatedAt,
-    });
+    const [user] = await this.db
+      .insert(sysUser)
+      .values({
+        username: dto.username,
+        password: hashSync(dto.password, 10),
+        nickname: dto.nickname,
+        email: dto.email,
+        phone: dto.phone,
+        gender: dto.gender,
+        deptId: dto.deptId,
+        status: dto.status ?? 0,
+        remark: dto.remark,
+      })
+      .returning({
+        id: sysUser.id,
+        username: sysUser.username,
+        nickname: sysUser.nickname,
+        email: sysUser.email,
+        phone: sysUser.phone,
+        gender: sysUser.gender,
+        avatar: sysUser.avatar,
+        deptId: sysUser.deptId,
+        status: sysUser.status,
+        remark: sysUser.remark,
+        createdAt: sysUser.createdAt,
+        updatedAt: sysUser.updatedAt,
+      });
 
     return user;
   }
@@ -166,20 +194,24 @@ export class UserService {
       return this.findOne(id);
     }
 
-    const [updated] = await this.db.update(sysUser).set(updateData).where(eq(sysUser.id, id)).returning({
-      id: sysUser.id,
-      username: sysUser.username,
-      nickname: sysUser.nickname,
-      email: sysUser.email,
-      phone: sysUser.phone,
-      gender: sysUser.gender,
-      avatar: sysUser.avatar,
-      deptId: sysUser.deptId,
-      status: sysUser.status,
-      remark: sysUser.remark,
-      createdAt: sysUser.createdAt,
-      updatedAt: sysUser.updatedAt,
-    });
+    const [updated] = await this.db
+      .update(sysUser)
+      .set(updateData)
+      .where(eq(sysUser.id, id))
+      .returning({
+        id: sysUser.id,
+        username: sysUser.username,
+        nickname: sysUser.nickname,
+        email: sysUser.email,
+        phone: sysUser.phone,
+        gender: sysUser.gender,
+        avatar: sysUser.avatar,
+        deptId: sysUser.deptId,
+        status: sysUser.status,
+        remark: sysUser.remark,
+        createdAt: sysUser.createdAt,
+        updatedAt: sysUser.updatedAt,
+      });
 
     return updated;
   }
@@ -197,7 +229,10 @@ export class UserService {
     }
 
     // 软删除
-    await this.db.update(sysUser).set({ deletedAt: new Date() }).where(eq(sysUser.id, id));
+    await this.db
+      .update(sysUser)
+      .set({ deletedAt: new Date() })
+      .where(eq(sysUser.id, id));
   }
 
   async resetPassword(id: string, dto: ResetPasswordDto) {
@@ -208,7 +243,10 @@ export class UserService {
       throw new NotFoundException('用户不存在');
     }
 
-    await this.db.update(sysUser).set({ password: hashSync(dto.newPassword, 10) }).where(eq(sysUser.id, id));
+    await this.db
+      .update(sysUser)
+      .set({ password: hashSync(dto.newPassword, 10) })
+      .where(eq(sysUser.id, id));
   }
 
   async updatePassword(id: string, oldPassword: string, newPassword: string) {
@@ -219,7 +257,10 @@ export class UserService {
       throw new BadRequestException('旧密码错误');
     }
 
-    await this.db.update(sysUser).set({ password: hashSync(newPassword, 10) }).where(eq(sysUser.id, id));
+    await this.db
+      .update(sysUser)
+      .set({ password: hashSync(newPassword, 10) })
+      .where(eq(sysUser.id, id));
   }
 
   async assignRoles(userId: string, roleIds: string[]) {
@@ -235,9 +276,9 @@ export class UserService {
 
     // 再批量插入新的关联
     if (roleIds.length > 0) {
-      await this.db.insert(sysUserRole).values(
-        roleIds.map((roleId) => ({ userId, roleId })),
-      );
+      await this.db
+        .insert(sysUserRole)
+        .values(roleIds.map((roleId) => ({ userId, roleId })));
     }
 
     return this.findOne(userId);

@@ -1,8 +1,17 @@
-import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { eq, and, isNull, asc, inArray, not } from 'drizzle-orm';
-import { sysUser, sysUserRole, sysRoleMenu, sysMenu } from '../../database/schema';
+import {
+  sysUser,
+  sysUserRole,
+  sysRoleMenu,
+  sysMenu,
+} from '../../database/schema';
 import { LoginDto } from './dto/login.dto';
 import { compareSync } from 'bcryptjs';
 import configuration from '../../config/configuration';
@@ -75,7 +84,10 @@ export class AuthService {
       throw new UnauthorizedException('账号已被禁用');
     }
 
-    const { accessToken, refreshToken } = await this.generateTokens(user.id, user.username!);
+    const { accessToken, refreshToken } = await this.generateTokens(
+      user.id,
+      user.username!,
+    );
 
     await this.loginLogService.record({
       userId: user.id,
@@ -120,7 +132,16 @@ export class AuthService {
     };
   }
 
-  async updateProfile(userId: string, dto: { nickname?: string; email?: string; phone?: string; gender?: number; avatar?: string }) {
+  async updateProfile(
+    userId: string,
+    dto: {
+      nickname?: string;
+      email?: string;
+      phone?: string;
+      gender?: number;
+      avatar?: string;
+    },
+  ) {
     // 如果更新了头像，先取出旧头像 URL，用于后续删除
     let oldAvatar: string | null = null;
     if (dto.avatar !== undefined) {
@@ -154,7 +175,8 @@ export class AuthService {
   async refresh(refreshToken: string) {
     try {
       const payload = this.jwtService.verify(refreshToken);
-      const { accessToken, refreshToken: newRefreshToken } = await this.generateTokens(payload.sub, payload.username);
+      const { accessToken, refreshToken: newRefreshToken } =
+        await this.generateTokens(payload.sub, payload.username);
 
       return {
         accessToken,
@@ -166,18 +188,24 @@ export class AuthService {
   }
 
   private async generateTokens(userId: string, username: string) {
-    const secret = this.configService.get<string>('jwt.secret', configuration().jwt.secret);
-    const expiresIn = this.configService.get<string>('jwt.expiresIn', configuration().jwt.expiresIn);
-
-    const accessToken = this.jwtService.sign(
-      { sub: userId, username },
-      { secret, expiresIn } as any,
+    const secret = this.configService.get<string>(
+      'jwt.secret',
+      configuration().jwt.secret,
+    );
+    const expiresIn = this.configService.get<string>(
+      'jwt.expiresIn',
+      configuration().jwt.expiresIn,
     );
 
-    const refreshToken = this.jwtService.sign(
-      { sub: userId, username },
-      { secret, expiresIn: '30d' } as any,
-    );
+    const accessToken = this.jwtService.sign({ sub: userId, username }, {
+      secret,
+      expiresIn,
+    } as any);
+
+    const refreshToken = this.jwtService.sign({ sub: userId, username }, {
+      secret,
+      expiresIn: '30d',
+    } as any);
 
     return { accessToken, refreshToken };
   }
@@ -187,7 +215,9 @@ export class AuthService {
     const userRoles = await this.db.query.sysUserRole.findMany({
       where: eq(sysUserRole.userId, userId),
     });
-    const roleIds = userRoles.map((ur) => ur.roleId).filter(Boolean) as string[];
+    const roleIds = userRoles
+      .map((ur) => ur.roleId)
+      .filter(Boolean) as string[];
 
     if (roleIds.length === 0) {
       return [];
@@ -197,7 +227,9 @@ export class AuthService {
     const roleMenus = await this.db.query.sysRoleMenu.findMany({
       where: inArray(sysRoleMenu.roleId, roleIds),
     });
-    const menuIds = [...new Set(roleMenus.map((rm) => rm.menuId))].filter(Boolean) as string[];
+    const menuIds = [...new Set(roleMenus.map((rm) => rm.menuId))].filter(
+      Boolean,
+    ) as string[];
 
     if (menuIds.length === 0) {
       return [];

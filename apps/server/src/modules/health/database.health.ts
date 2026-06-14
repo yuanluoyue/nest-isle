@@ -11,7 +11,10 @@ export class DatabaseHealthIndicator extends HealthIndicator {
 
   async isHealthy(key: string): Promise<HealthIndicatorResult> {
     try {
-      await this.databaseService.db.select({ id: sysUser.id }).from(sysUser).limit(1);
+      await this.databaseService.db
+        .select({ id: sysUser.id })
+        .from(sysUser)
+        .limit(1);
       return this.getStatus(key, true);
     } catch (error) {
       return this.getStatus(key, false, { message: (error as Error).message });

@@ -6,7 +6,13 @@ import {
   UploadedFile,
   BadRequestException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiBody,
+} from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../../core/auth/jwt-auth.guard';
 import { CurrentUser } from '../../core/auth/current-user.decorator';
@@ -30,7 +36,9 @@ export class FileController {
       },
     },
   })
-  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }))
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }),
+  )
   async upload(
     @UploadedFile() file: Express.Multer.File | undefined,
     @CurrentUser() user: { id: string },
@@ -54,7 +62,9 @@ export class FileController {
       },
     },
   })
-  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 5 * 1024 * 1024 } }))
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: 5 * 1024 * 1024 } }),
+  )
   async uploadAvatar(
     @UploadedFile() file: Express.Multer.File | undefined,
     @CurrentUser() user: { id: string },

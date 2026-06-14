@@ -1,4 +1,11 @@
-import { pgTable, uuid, varchar, timestamp, integer, jsonb } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  uuid,
+  varchar,
+  timestamp,
+  integer,
+  jsonb,
+} from 'drizzle-orm/pg-core';
 
 export const sysDictItem = pgTable('sys_dict_item', {
   id: uuid('id').defaultRandom().primaryKey(),

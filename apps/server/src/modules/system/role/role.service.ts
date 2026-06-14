@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { eq, and, isNull, ilike, SQL } from 'drizzle-orm';
 import { sysRole, sysRoleMenu, sysMenu } from '../../../database/schema';
 import { DatabaseService } from '../../../database/database.service';
@@ -90,22 +95,25 @@ export class RoleService {
       throw new ConflictException('角色编码已存在');
     }
 
-    const [role] = await this.db.insert(sysRole).values({
-      name: dto.name,
-      code: dto.code,
-      sort: dto.sort,
-      status: dto.status ?? 0,
-      remark: dto.remark,
-    }).returning({
-      id: sysRole.id,
-      name: sysRole.name,
-      code: sysRole.code,
-      sort: sysRole.sort,
-      status: sysRole.status,
-      remark: sysRole.remark,
-      createdAt: sysRole.createdAt,
-      updatedAt: sysRole.updatedAt,
-    });
+    const [role] = await this.db
+      .insert(sysRole)
+      .values({
+        name: dto.name,
+        code: dto.code,
+        sort: dto.sort,
+        status: dto.status ?? 0,
+        remark: dto.remark,
+      })
+      .returning({
+        id: sysRole.id,
+        name: sysRole.name,
+        code: sysRole.code,
+        sort: sysRole.sort,
+        status: sysRole.status,
+        remark: sysRole.remark,
+        createdAt: sysRole.createdAt,
+        updatedAt: sysRole.updatedAt,
+      });
 
     return role;
   }
@@ -143,16 +151,20 @@ export class RoleService {
       return this.findOne(id);
     }
 
-    const [updated] = await this.db.update(sysRole).set(updateData).where(eq(sysRole.id, id)).returning({
-      id: sysRole.id,
-      name: sysRole.name,
-      code: sysRole.code,
-      sort: sysRole.sort,
-      status: sysRole.status,
-      remark: sysRole.remark,
-      createdAt: sysRole.createdAt,
-      updatedAt: sysRole.updatedAt,
-    });
+    const [updated] = await this.db
+      .update(sysRole)
+      .set(updateData)
+      .where(eq(sysRole.id, id))
+      .returning({
+        id: sysRole.id,
+        name: sysRole.name,
+        code: sysRole.code,
+        sort: sysRole.sort,
+        status: sysRole.status,
+        remark: sysRole.remark,
+        createdAt: sysRole.createdAt,
+        updatedAt: sysRole.updatedAt,
+      });
 
     return updated;
   }
@@ -170,7 +182,10 @@ export class RoleService {
     }
 
     // 软删除
-    await this.db.update(sysRole).set({ deletedAt: new Date() }).where(eq(sysRole.id, id));
+    await this.db
+      .update(sysRole)
+      .set({ deletedAt: new Date() })
+      .where(eq(sysRole.id, id));
   }
 
   async assignMenus(roleId: string, menuIds: string[]) {

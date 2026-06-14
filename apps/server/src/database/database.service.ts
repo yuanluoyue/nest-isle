@@ -17,15 +17,27 @@ export class DatabaseService implements OnModuleInit {
     this.client = postgres({
       host: configService.get<string>('database.host', config.database.host),
       port: configService.get<number>('database.port', config.database.port),
-      database: configService.get<string>('database.name', config.database.name),
-      username: configService.get<string>('database.user', config.database.user),
-      password: configService.get<string>('database.password', config.database.password),
+      database: configService.get<string>(
+        'database.name',
+        config.database.name,
+      ),
+      username: configService.get<string>(
+        'database.user',
+        config.database.user,
+      ),
+      password: configService.get<string>(
+        'database.password',
+        config.database.password,
+      ),
     });
     this.db = drizzle(this.client, { schema });
   }
 
   async onModuleInit() {
-    await this.db.select({ one: schema.sysUser.id }).from(schema.sysUser).limit(1);
+    await this.db
+      .select({ one: schema.sysUser.id })
+      .from(schema.sysUser)
+      .limit(1);
     this.logger.log('Database connected');
   }
 }

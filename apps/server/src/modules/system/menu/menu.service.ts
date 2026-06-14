@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { eq, and, isNull, ilike, asc, SQL } from 'drizzle-orm';
 import { sysMenu } from '../../../database/schema';
 import { DatabaseService } from '../../../database/database.service';
@@ -18,7 +22,8 @@ export class MenuService {
     const conditions: SQL[] = [isNull(sysMenu.deletedAt)];
     if (query.name) conditions.push(ilike(sysMenu.name, `%${query.name}%`));
     if (query.type !== undefined) conditions.push(eq(sysMenu.type, query.type));
-    if (query.status !== undefined) conditions.push(eq(sysMenu.status, query.status));
+    if (query.status !== undefined)
+      conditions.push(eq(sysMenu.status, query.status));
 
     const where = and(...conditions);
 
@@ -60,25 +65,31 @@ export class MenuService {
     // 权限标识唯一性校验
     if (dto.permission) {
       const existing = await this.db.query.sysMenu.findFirst({
-        where: and(eq(sysMenu.permission, dto.permission), isNull(sysMenu.deletedAt)),
+        where: and(
+          eq(sysMenu.permission, dto.permission),
+          isNull(sysMenu.deletedAt),
+        ),
       });
       if (existing) {
         throw new ConflictException('权限标识已存在');
       }
     }
 
-    const [menu] = await this.db.insert(sysMenu).values({
-      parentId: dto.parentId || null,
-      name: dto.name,
-      type: dto.type,
-      path: dto.path,
-      component: dto.component,
-      permission: dto.permission,
-      icon: dto.icon,
-      sort: dto.sort ?? 0,
-      visible: dto.visible ?? 0,
-      status: dto.status ?? 0,
-    }).returning();
+    const [menu] = await this.db
+      .insert(sysMenu)
+      .values({
+        parentId: dto.parentId || null,
+        name: dto.name,
+        type: dto.type,
+        path: dto.path,
+        component: dto.component,
+        permission: dto.permission,
+        icon: dto.icon,
+        sort: dto.sort ?? 0,
+        visible: dto.visible ?? 0,
+        status: dto.status ?? 0,
+      })
+      .returning();
 
     return menu;
   }
@@ -99,7 +110,10 @@ export class MenuService {
     // 权限标识唯一性校验
     if (dto.permission && dto.permission !== menu.permission) {
       const existing = await this.db.query.sysMenu.findFirst({
-        where: and(eq(sysMenu.permission, dto.permission), isNull(sysMenu.deletedAt)),
+        where: and(
+          eq(sysMenu.permission, dto.permission),
+          isNull(sysMenu.deletedAt),
+        ),
       });
       if (existing) {
         throw new ConflictException('权限标识已存在');
@@ -122,7 +136,11 @@ export class MenuService {
       return this.findOne(id);
     }
 
-    const [updated] = await this.db.update(sysMenu).set(updateData).where(eq(sysMenu.id, id)).returning();
+    const [updated] = await this.db
+      .update(sysMenu)
+      .set(updateData)
+      .where(eq(sysMenu.id, id))
+      .returning();
     return updated;
   }
 
@@ -143,7 +161,10 @@ export class MenuService {
     }
 
     // 软删除
-    await this.db.update(sysMenu).set({ deletedAt: new Date() }).where(eq(sysMenu.id, id));
+    await this.db
+      .update(sysMenu)
+      .set({ deletedAt: new Date() })
+      .where(eq(sysMenu.id, id));
   }
 
   private buildTree(menus: any[]) {

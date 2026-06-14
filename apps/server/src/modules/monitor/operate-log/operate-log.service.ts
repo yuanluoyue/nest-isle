@@ -18,7 +18,8 @@ export class OperateLogService {
 
     const conditions: SQL[] = [];
     if (module) conditions.push(ilike(sysOperateLog.module, `%${module}%`));
-    if (description) conditions.push(ilike(sysOperateLog.description, `%${description}%`));
+    if (description)
+      conditions.push(ilike(sysOperateLog.description, `%${description}%`));
     if (status !== undefined) conditions.push(eq(sysOperateLog.status, status));
 
     const where = conditions.length > 0 ? and(...conditions) : undefined;

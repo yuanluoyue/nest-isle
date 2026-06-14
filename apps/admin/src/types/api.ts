@@ -355,3 +355,52 @@ export interface QueryDictItemParams {
   label?: string;
   status?: number;
 }
+
+// ============ 通知公告 ============
+
+export interface NoticeItem {
+  id: string;
+  title: string | null;
+  summary: string | null;
+  content: string | null;
+  category: string | null; // system=系统 release=发布 maintenance=维护 security=安全
+  status: number | null; // 0=草稿 1=已发布 2=已归档
+  publishedAt: string | null;
+  remark: string | null;
+  createdBy: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface NoticeListResult {
+  list: NoticeItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface CreateNoticeParams {
+  title: string;
+  summary?: string;
+  content: string;
+  category?: string;
+  status?: number;
+  remark?: string;
+}
+
+export interface UpdateNoticeParams {
+  title?: string;
+  summary?: string;
+  content?: string;
+  category?: string;
+  status?: number;
+  remark?: string;
+}
+
+export interface QueryNoticeParams {
+  page?: number;
+  pageSize?: number;
+  title?: string;
+  category?: string;
+  status?: number;
+}

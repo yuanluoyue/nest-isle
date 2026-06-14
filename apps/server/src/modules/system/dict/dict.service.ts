@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { eq, and, isNull, ilike, asc, SQL } from 'drizzle-orm';
 import { sysDictType, sysDictItem } from '../../../database/schema';
 import { DatabaseService } from '../../../database/database.service';
@@ -83,7 +87,10 @@ export class DictService {
 
     if (dto.code && dto.code !== type.code) {
       const existing = await this.db.query.sysDictType.findFirst({
-        where: and(eq(sysDictType.code, dto.code), isNull(sysDictType.deletedAt)),
+        where: and(
+          eq(sysDictType.code, dto.code),
+          isNull(sysDictType.deletedAt),
+        ),
       });
       if (existing) {
         throw new ConflictException('字典编码已存在');
@@ -109,7 +116,10 @@ export class DictService {
 
     // 检查是否还有未删除的字典项
     const items = await this.db.query.sysDictItem.findMany({
-      where: and(eq(sysDictItem.dictTypeId, type.id), isNull(sysDictItem.deletedAt)),
+      where: and(
+        eq(sysDictItem.dictTypeId, type.id),
+        isNull(sysDictItem.deletedAt),
+      ),
       columns: { id: true },
     });
     if (items.length > 0) {
@@ -128,7 +138,10 @@ export class DictService {
     let dictTypeId = query.dictTypeId;
     if (!dictTypeId && query.dictTypeCode) {
       const type = await this.db.query.sysDictType.findFirst({
-        where: and(eq(sysDictType.code, query.dictTypeCode), isNull(sysDictType.deletedAt)),
+        where: and(
+          eq(sysDictType.code, query.dictTypeCode),
+          isNull(sysDictType.deletedAt),
+        ),
       });
       if (!type) return [];
       dictTypeId = type.id;
@@ -136,8 +149,10 @@ export class DictService {
 
     const conditions: SQL[] = [isNull(sysDictItem.deletedAt)];
     if (dictTypeId) conditions.push(eq(sysDictItem.dictTypeId, dictTypeId));
-    if (query.label) conditions.push(ilike(sysDictItem.label, `%${query.label}%`));
-    if (query.status !== undefined) conditions.push(eq(sysDictItem.status, query.status));
+    if (query.label)
+      conditions.push(ilike(sysDictItem.label, `%${query.label}%`));
+    if (query.status !== undefined)
+      conditions.push(eq(sysDictItem.status, query.status));
 
     const list = await this.db.query.sysDictItem.findMany({
       where: and(...conditions),

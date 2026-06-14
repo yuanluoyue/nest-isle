@@ -20,6 +20,7 @@ const UserPage = React.lazy(() => import('../pages/system/user'));
 const RolePage = React.lazy(() => import('../pages/system/role'));
 const MenuPage = React.lazy(() => import('../pages/system/menu'));
 const DictPage = React.lazy(() => import('../pages/system/dict'));
+const NoticePage = React.lazy(() => import('../pages/system/notice'));
 const OperateLogPage = React.lazy(() => import('../pages/monitor/operate-log'));
 const LoginLogPage = React.lazy(() => import('../pages/monitor/login-log'));
 const ProfilePage = React.lazy(() => import('../pages/profile'));
@@ -50,6 +51,7 @@ export const routeObjects: RouteObject[] = [
           { path: 'role', element: LazyLoad(RolePage) },
           { path: 'menu', element: LazyLoad(MenuPage) },
           { path: 'dict', element: LazyLoad(DictPage) },
+          { path: 'notice', element: LazyLoad(NoticePage) },
         ],
       },
       {

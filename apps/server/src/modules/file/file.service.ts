@@ -18,11 +18,20 @@ export class FileService {
     const storageConfig: StorageConfig = {
       endpoint: this.configService.get<string>('minio.endpoint', 'localhost'),
       port: this.configService.get<number>('minio.port', 9000),
-      accessKey: this.configService.get<string>('minio.accessKey', 'minioadmin'),
-      secretKey: this.configService.get<string>('minio.secretKey', 'minioadmin'),
+      accessKey: this.configService.get<string>(
+        'minio.accessKey',
+        'minioadmin',
+      ),
+      secretKey: this.configService.get<string>(
+        'minio.secretKey',
+        'minioadmin',
+      ),
       useSSL: this.configService.get<boolean>('minio.useSSL', false),
       bucket: this.configService.get<string>('minio.bucket', 'nest-isle'),
-      publicUrl: this.configService.get<string>('minio.publicUrl', 'http://localhost:9000'),
+      publicUrl: this.configService.get<string>(
+        'minio.publicUrl',
+        'http://localhost:9000',
+      ),
     };
 
     this.bucket = storageConfig.bucket;
@@ -38,7 +47,11 @@ export class FileService {
     return this.databaseService.db;
   }
 
-  async upload(file: Express.Multer.File, createdBy: string, directory = 'uploads') {
+  async upload(
+    file: Express.Multer.File,
+    createdBy: string,
+    directory = 'uploads',
+  ) {
     const ext = file.originalname.split('.').pop();
     const timestamp = Date.now();
     const randomStr = Math.random().toString(36).substring(2, 8);

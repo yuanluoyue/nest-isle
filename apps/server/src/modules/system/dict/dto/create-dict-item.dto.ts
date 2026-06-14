@@ -1,5 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsOptional, IsInt, IsObject, Min, Max, Length } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsInt,
+  IsObject,
+  Min,
+  Max,
+  Length,
+} from 'class-validator';
 
 export class CreateDictItemDto {
   @ApiProperty({ description: '字典类型 ID' })
@@ -25,7 +34,10 @@ export class CreateDictItemDto {
   @Min(0)
   sort?: number;
 
-  @ApiPropertyOptional({ description: '颜色（用于 Tag 显示）', example: 'blue' })
+  @ApiPropertyOptional({
+    description: '颜色（用于 Tag 显示）',
+    example: 'blue',
+  })
   @IsString()
   @IsOptional()
   @Length(0, 50)

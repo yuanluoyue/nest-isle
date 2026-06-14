@@ -11,41 +11,56 @@ async function seed() {
   const db = drizzle(client, { schema });
 
   // 幂等：查找或创建部门
-  let dept = await db.query.sysDept.findFirst({ where: eq(schema.sysDept.name, '总公司') });
+  let dept = await db.query.sysDept.findFirst({
+    where: eq(schema.sysDept.name, '总公司'),
+  });
   if (!dept) {
-    const [created] = await db.insert(schema.sysDept).values({
-      name: '总公司',
-      sort: 0,
-      status: 0,
-    }).returning();
+    const [created] = await db
+      .insert(schema.sysDept)
+      .values({
+        name: '总公司',
+        sort: 0,
+        status: 0,
+      })
+      .returning();
     dept = created;
     console.log('Created dept: 总公司');
   }
 
   // 幂等：查找或创建角色
-  let role = await db.query.sysRole.findFirst({ where: eq(schema.sysRole.code, 'admin') });
+  let role = await db.query.sysRole.findFirst({
+    where: eq(schema.sysRole.code, 'admin'),
+  });
   if (!role) {
-    const [created] = await db.insert(schema.sysRole).values({
-      name: '超级管理员',
-      code: 'admin',
-      sort: 0,
-      status: 0,
-    }).returning();
+    const [created] = await db
+      .insert(schema.sysRole)
+      .values({
+        name: '超级管理员',
+        code: 'admin',
+        sort: 0,
+        status: 0,
+      })
+      .returning();
     role = created;
     console.log('Created role: admin');
   }
 
   // 幂等：查找或创建管理员账号
-  let admin = await db.query.sysUser.findFirst({ where: eq(schema.sysUser.username, 'admin') });
+  let admin = await db.query.sysUser.findFirst({
+    where: eq(schema.sysUser.username, 'admin'),
+  });
   if (!admin) {
-    const [created] = await db.insert(schema.sysUser).values({
-      username: 'admin',
-      password: hashSync('123456', 10),
-      nickname: '超级管理员',
-      gender: 0,
-      deptId: dept.id,
-      status: 0,
-    }).returning();
+    const [created] = await db
+      .insert(schema.sysUser)
+      .values({
+        username: 'admin',
+        password: hashSync('123456', 10),
+        nickname: '超级管理员',
+        gender: 0,
+        deptId: dept.id,
+        status: 0,
+      })
+      .returning();
     admin = created;
     console.log('Created user: admin');
   }
@@ -65,54 +80,69 @@ async function seed() {
   // ============ 菜单和权限 ============
 
   // 仪表盘菜单
-  let dashboardMenu = await db.query.sysMenu.findFirst({ where: eq(schema.sysMenu.name, '仪表盘') });
+  let dashboardMenu = await db.query.sysMenu.findFirst({
+    where: eq(schema.sysMenu.name, '仪表盘'),
+  });
   if (!dashboardMenu) {
-    const [created] = await db.insert(schema.sysMenu).values({
-      name: '仪表盘',
-      type: 1,
-      path: '/dashboard',
-      component: 'dashboard',
-      permission: 'dashboard:view',
-      icon: 'DashboardOutlined',
-      sort: 0,
-      visible: 0,
-      status: 0,
-    }).returning();
+    const [created] = await db
+      .insert(schema.sysMenu)
+      .values({
+        name: '仪表盘',
+        type: 1,
+        path: '/dashboard',
+        component: 'dashboard',
+        permission: 'dashboard:view',
+        icon: 'DashboardOutlined',
+        sort: 0,
+        visible: 0,
+        status: 0,
+      })
+      .returning();
     dashboardMenu = created;
     console.log('Created menu: 仪表盘');
   }
 
   // 系统管理目录
-  let systemMenu = await db.query.sysMenu.findFirst({ where: eq(schema.sysMenu.name, '系统管理') });
+  let systemMenu = await db.query.sysMenu.findFirst({
+    where: eq(schema.sysMenu.name, '系统管理'),
+  });
   if (!systemMenu) {
-    const [created] = await db.insert(schema.sysMenu).values({
-      name: '系统管理',
-      type: 0,
-      path: '/system',
-      icon: 'SettingOutlined',
-      sort: 1,
-      visible: 0,
-      status: 0,
-    }).returning();
+    const [created] = await db
+      .insert(schema.sysMenu)
+      .values({
+        name: '系统管理',
+        type: 0,
+        path: '/system',
+        icon: 'SettingOutlined',
+        sort: 1,
+        visible: 0,
+        status: 0,
+      })
+      .returning();
     systemMenu = created;
     console.log('Created menu: 系统管理');
   }
 
   // 用户管理菜单
-  let userMenu = await db.query.sysMenu.findFirst({ where: eq(schema.sysMenu.name, '用户管理') });
+  let userMenu = await db.query.sysMenu.findFirst({
+    where: eq(schema.sysMenu.name, '用户管理'),
+  });
   if (!userMenu) {
-    const [created] = await db.insert(schema.sysMenu).values({
-      parentId: systemMenu.id,
-      name: '用户管理',
-      type: 1,
-      path: '/system/user',
-      component: 'system/user',
-      permission: 'system:user:list',
-      icon: 'UserOutlined',
-      sort: 1,
-      visible: 0,
-      status: 0,
-    }).returning();
+    const [created] = await db
+      .insert(schema.sysMenu)
+      .values({
+        parentId: systemMenu.id,
+        name: '用户管理',
+        type: 1,
+        path: '/system/user',
+        component: 'system/user',
+        permission: 'system:user:list',
+        icon: 'UserOutlined',
+        sort: 1,
+        visible: 0,
+        status: 0,
+      })
+      .returning();
     userMenu = created;
     console.log('Created menu: 用户管理');
   }
@@ -126,7 +156,9 @@ async function seed() {
   ];
 
   for (const btn of userButtons) {
-    const existing = await db.query.sysMenu.findFirst({ where: eq(schema.sysMenu.permission, btn.permission) });
+    const existing = await db.query.sysMenu.findFirst({
+      where: eq(schema.sysMenu.permission, btn.permission),
+    });
     if (!existing) {
       await db.insert(schema.sysMenu).values({
         parentId: userMenu.id,
@@ -142,20 +174,25 @@ async function seed() {
   }
 
   // 角色管理菜单
-  let roleMenu = await db.query.sysMenu.findFirst({ where: eq(schema.sysMenu.name, '角色管理') });
+  let roleMenu = await db.query.sysMenu.findFirst({
+    where: eq(schema.sysMenu.name, '角色管理'),
+  });
   if (!roleMenu) {
-    const [created] = await db.insert(schema.sysMenu).values({
-      parentId: systemMenu.id,
-      name: '角色管理',
-      type: 1,
-      path: '/system/role',
-      component: 'system/role',
-      permission: 'system:role:list',
-      icon: 'TeamOutlined',
-      sort: 2,
-      visible: 0,
-      status: 0,
-    }).returning();
+    const [created] = await db
+      .insert(schema.sysMenu)
+      .values({
+        parentId: systemMenu.id,
+        name: '角色管理',
+        type: 1,
+        path: '/system/role',
+        component: 'system/role',
+        permission: 'system:role:list',
+        icon: 'TeamOutlined',
+        sort: 2,
+        visible: 0,
+        status: 0,
+      })
+      .returning();
     roleMenu = created;
     console.log('Created menu: 角色管理');
   }
@@ -169,7 +206,9 @@ async function seed() {
   ];
 
   for (const btn of roleButtons) {
-    const existing = await db.query.sysMenu.findFirst({ where: eq(schema.sysMenu.permission, btn.permission) });
+    const existing = await db.query.sysMenu.findFirst({
+      where: eq(schema.sysMenu.permission, btn.permission),
+    });
     if (!existing) {
       await db.insert(schema.sysMenu).values({
         parentId: roleMenu.id,
@@ -185,20 +224,25 @@ async function seed() {
   }
 
   // 菜单管理菜单
-  let menuManageMenu = await db.query.sysMenu.findFirst({ where: eq(schema.sysMenu.name, '菜单管理') });
+  let menuManageMenu = await db.query.sysMenu.findFirst({
+    where: eq(schema.sysMenu.name, '菜单管理'),
+  });
   if (!menuManageMenu) {
-    const [created] = await db.insert(schema.sysMenu).values({
-      parentId: systemMenu.id,
-      name: '菜单管理',
-      type: 1,
-      path: '/system/menu',
-      component: 'system/menu',
-      permission: 'system:menu:list',
-      icon: 'MenuOutlined',
-      sort: 3,
-      visible: 0,
-      status: 0,
-    }).returning();
+    const [created] = await db
+      .insert(schema.sysMenu)
+      .values({
+        parentId: systemMenu.id,
+        name: '菜单管理',
+        type: 1,
+        path: '/system/menu',
+        component: 'system/menu',
+        permission: 'system:menu:list',
+        icon: 'MenuOutlined',
+        sort: 3,
+        visible: 0,
+        status: 0,
+      })
+      .returning();
     menuManageMenu = created;
     console.log('Created menu: 菜单管理');
   }
@@ -211,7 +255,9 @@ async function seed() {
   ];
 
   for (const btn of menuButtons) {
-    const existing = await db.query.sysMenu.findFirst({ where: eq(schema.sysMenu.permission, btn.permission) });
+    const existing = await db.query.sysMenu.findFirst({
+      where: eq(schema.sysMenu.permission, btn.permission),
+    });
     if (!existing) {
       await db.insert(schema.sysMenu).values({
         parentId: menuManageMenu.id,
@@ -227,20 +273,25 @@ async function seed() {
   }
 
   // 字典管理菜单
-  let dictMenu = await db.query.sysMenu.findFirst({ where: eq(schema.sysMenu.name, '字典管理') });
+  let dictMenu = await db.query.sysMenu.findFirst({
+    where: eq(schema.sysMenu.name, '字典管理'),
+  });
   if (!dictMenu) {
-    const [created] = await db.insert(schema.sysMenu).values({
-      parentId: systemMenu.id,
-      name: '字典管理',
-      type: 1,
-      path: '/system/dict',
-      component: 'system/dict',
-      permission: 'system:dict:list',
-      icon: 'BookOutlined',
-      sort: 4,
-      visible: 0,
-      status: 0,
-    }).returning();
+    const [created] = await db
+      .insert(schema.sysMenu)
+      .values({
+        parentId: systemMenu.id,
+        name: '字典管理',
+        type: 1,
+        path: '/system/dict',
+        component: 'system/dict',
+        permission: 'system:dict:list',
+        icon: 'BookOutlined',
+        sort: 4,
+        visible: 0,
+        status: 0,
+      })
+      .returning();
     dictMenu = created;
     console.log('Created menu: 字典管理');
   }
@@ -256,7 +307,9 @@ async function seed() {
   ];
 
   for (const btn of dictButtons) {
-    const existing = await db.query.sysMenu.findFirst({ where: eq(schema.sysMenu.permission, btn.permission) });
+    const existing = await db.query.sysMenu.findFirst({
+      where: eq(schema.sysMenu.permission, btn.permission),
+    });
     if (!existing) {
       await db.insert(schema.sysMenu).values({
         parentId: dictMenu.id,
@@ -271,56 +324,120 @@ async function seed() {
     }
   }
 
+  // 通知公告菜单
+  let noticeMenu = await db.query.sysMenu.findFirst({
+    where: eq(schema.sysMenu.name, '通知公告'),
+  });
+  if (!noticeMenu) {
+    const [created] = await db
+      .insert(schema.sysMenu)
+      .values({
+        parentId: systemMenu.id,
+        name: '通知公告',
+        type: 1,
+        path: '/system/notice',
+        component: 'system/notice',
+        permission: 'system:notice:list',
+        icon: 'NotificationOutlined',
+        sort: 5,
+        visible: 0,
+        status: 0,
+      })
+      .returning();
+    noticeMenu = created;
+    console.log('Created menu: 通知公告');
+  }
+
+  // 通知公告按钮权限
+  const noticeButtons = [
+    { name: '通知新增', permission: 'system:notice:create', sort: 1 },
+    { name: '通知编辑', permission: 'system:notice:update', sort: 2 },
+    { name: '通知删除', permission: 'system:notice:delete', sort: 3 },
+  ];
+
+  for (const btn of noticeButtons) {
+    const existing = await db.query.sysMenu.findFirst({
+      where: eq(schema.sysMenu.permission, btn.permission),
+    });
+    if (!existing) {
+      await db.insert(schema.sysMenu).values({
+        parentId: noticeMenu.id,
+        name: btn.name,
+        type: 2,
+        permission: btn.permission,
+        sort: btn.sort,
+        visible: 0,
+        status: 0,
+      });
+      console.log(`Created button: ${btn.name}`);
+    }
+  }
+
   // 系统监控目录
-  let monitorMenu = await db.query.sysMenu.findFirst({ where: eq(schema.sysMenu.name, '系统监控') });
+  let monitorMenu = await db.query.sysMenu.findFirst({
+    where: eq(schema.sysMenu.name, '系统监控'),
+  });
   if (!monitorMenu) {
-    const [created] = await db.insert(schema.sysMenu).values({
-      name: '系统监控',
-      type: 0,
-      path: '/monitor',
-      icon: 'MonitorOutlined',
-      sort: 2,
-      visible: 0,
-      status: 0,
-    }).returning();
+    const [created] = await db
+      .insert(schema.sysMenu)
+      .values({
+        name: '系统监控',
+        type: 0,
+        path: '/monitor',
+        icon: 'MonitorOutlined',
+        sort: 2,
+        visible: 0,
+        status: 0,
+      })
+      .returning();
     monitorMenu = created;
     console.log('Created menu: 系统监控');
   }
 
   // 操作日志菜单
-  let operateLogMenu = await db.query.sysMenu.findFirst({ where: eq(schema.sysMenu.name, '操作日志') });
+  let operateLogMenu = await db.query.sysMenu.findFirst({
+    where: eq(schema.sysMenu.name, '操作日志'),
+  });
   if (!operateLogMenu) {
-    const [created] = await db.insert(schema.sysMenu).values({
-      parentId: monitorMenu.id,
-      name: '操作日志',
-      type: 1,
-      path: '/monitor/operate-log',
-      component: 'monitor/operate-log',
-      permission: 'monitor:operate-log:list',
-      icon: 'FileTextOutlined',
-      sort: 1,
-      visible: 0,
-      status: 0,
-    }).returning();
+    const [created] = await db
+      .insert(schema.sysMenu)
+      .values({
+        parentId: monitorMenu.id,
+        name: '操作日志',
+        type: 1,
+        path: '/monitor/operate-log',
+        component: 'monitor/operate-log',
+        permission: 'monitor:operate-log:list',
+        icon: 'FileTextOutlined',
+        sort: 1,
+        visible: 0,
+        status: 0,
+      })
+      .returning();
     operateLogMenu = created;
     console.log('Created menu: 操作日志');
   }
 
   // 登录日志菜单
-  let loginLogMenu = await db.query.sysMenu.findFirst({ where: eq(schema.sysMenu.name, '登录日志') });
+  let loginLogMenu = await db.query.sysMenu.findFirst({
+    where: eq(schema.sysMenu.name, '登录日志'),
+  });
   if (!loginLogMenu) {
-    const [created] = await db.insert(schema.sysMenu).values({
-      parentId: monitorMenu.id,
-      name: '登录日志',
-      type: 1,
-      path: '/monitor/login-log',
-      component: 'monitor/login-log',
-      permission: 'monitor:login-log:list',
-      icon: 'FileTextOutlined',
-      sort: 2,
-      visible: 0,
-      status: 0,
-    }).returning();
+    const [created] = await db
+      .insert(schema.sysMenu)
+      .values({
+        parentId: monitorMenu.id,
+        name: '登录日志',
+        type: 1,
+        path: '/monitor/login-log',
+        component: 'monitor/login-log',
+        permission: 'monitor:login-log:list',
+        icon: 'FileTextOutlined',
+        sort: 2,
+        visible: 0,
+        status: 0,
+      })
+      .returning();
     loginLogMenu = created;
     console.log('Created menu: 登录日志');
   }

@@ -40,7 +40,9 @@ export class LoginLogService {
         message: data.message ?? null,
       });
     } catch (error) {
-      this.logger.error(`Failed to write login log: ${(error as Error).message}`);
+      this.logger.error(
+        `Failed to write login log: ${(error as Error).message}`,
+      );
     }
   }
 
@@ -82,7 +84,10 @@ export class LoginLogService {
   /**
    * 简单解析 UA，提取浏览器和操作系统
    */
-  private parseUserAgent(ua?: string | null): { browser: string | null; os: string | null } {
+  private parseUserAgent(ua?: string | null): {
+    browser: string | null;
+    os: string | null;
+  } {
     if (!ua) return { browser: null, os: null };
 
     let browser: string | null = null;

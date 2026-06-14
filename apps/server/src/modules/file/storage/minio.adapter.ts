@@ -20,7 +20,12 @@ export class MinioAdapter extends StorageAdapter {
     });
   }
 
-  async upload(bucket: string, path: string, buffer: Buffer, mimeType: string): Promise<UploadResult> {
+  async upload(
+    bucket: string,
+    path: string,
+    buffer: Buffer,
+    mimeType: string,
+  ): Promise<UploadResult> {
     await this.ensureBucket(bucket);
 
     await this.client.putObject(bucket, path, buffer, buffer.length, {
@@ -42,7 +47,9 @@ export class MinioAdapter extends StorageAdapter {
     try {
       await this.client.removeObject(bucket, path);
     } catch (error) {
-      this.logger.error(`Failed to remove object ${bucket}/${path}: ${error.message}`);
+      this.logger.error(
+        `Failed to remove object ${bucket}/${path}: ${error.message}`,
+      );
       throw error;
     }
   }

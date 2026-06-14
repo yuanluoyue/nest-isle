@@ -12,11 +12,17 @@ import configuration from '../../config/configuration';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('jwt.secret', configuration().jwt.secret),
+        secret: configService.get<string>(
+          'jwt.secret',
+          configuration().jwt.secret,
+        ),
         signOptions: {
-          expiresIn: configService.get('jwt.expiresIn', configuration().jwt.expiresIn),
+          expiresIn: configService.get(
+            'jwt.expiresIn',
+            configuration().jwt.expiresIn,
+          ) as any,
         },
-      } as any),
+      }),
     }),
   ],
   providers: [JwtStrategy],
