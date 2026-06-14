@@ -17,7 +17,7 @@ export class UpdateProfileDto {
   @IsOptional()
   phone?: string;
 
-  @ApiPropertyOptional({ description: '性别 0-男 1-女 2-未知' })
+  @ApiPropertyOptional({ description: '性别 0-未知 1-男 2-女' })
   @IsInt()
   @IsIn([0, 1, 2])
   @IsOptional()

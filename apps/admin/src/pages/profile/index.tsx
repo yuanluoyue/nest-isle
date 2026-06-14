@@ -5,9 +5,9 @@ import { getProfile, updateProfile } from '../../api/auth';
 import type { UserProfile, UpdateProfileParams } from '../../types/api';
 
 const genderOptions = [
-  { label: '男', value: 0 },
-  { label: '女', value: 1 },
-  { label: '未知', value: 2 },
+  { label: '未知', value: 0 },
+  { label: '男', value: 1 },
+  { label: '女', value: 2 },
 ];
 
 const statusMap: Record<number, { text: string; color: string }> = {
@@ -39,7 +39,7 @@ const ProfilePage = () => {
       nickname: profile?.nickname || '',
       email: profile?.email || '',
       phone: profile?.phone || '',
-      gender: profile?.gender ?? 0,
+      gender: profile?.gender,
     });
     setEditing(true);
   };
@@ -99,7 +99,7 @@ const ProfilePage = () => {
               <Input placeholder="请输入手机号" />
             </Form.Item>
             <Form.Item name="gender" label="性别">
-              <Select options={genderOptions} />
+              <Select options={genderOptions} allowClear placeholder="请选择性别" />
             </Form.Item>
             <Form.Item>
               <Button type="primary" htmlType="submit" loading={saving} style={{ marginRight: 8 }}>

@@ -1,25 +1,60 @@
-import { useState } from 'react';
-import { Layout, Avatar, Dropdown, theme } from 'antd';
+import { useState, useMemo } from 'react';
+import { Layout, Avatar, Dropdown, Breadcrumb, theme } from 'antd';
 import {
   UserOutlined,
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
 } from '@ant-design/icons';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/auth';
 import { useMenuStore } from '../stores/menu';
 import { useProfile } from '../hooks/useProfile';
 import SideMenu from '../components/SideMenu';
+import type { MenuItem } from '../types/api';
 
 const { Header, Content } = Layout;
+
+function buildBreadcrumbItems(menus: MenuItem[], pathname: string) {
+  const items: { title: string; path?: string }[] = [{ title: '首页', path: '/dashboard' }];
+
+  const findPath = (menuList: MenuItem[], target: string, parents: MenuItem[]): boolean => {
+    for (const menu of menuList) {
+      if (menu.path === target) {
+        parents.forEach((p) => items.push({ title: p.name || '', path: p.path || undefined }));
+        items.push({ title: menu.name || '' });
+        return true;
+      }
+      if (menu.children && findPath(menu.children, target, [...parents, menu])) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  findPath(menus, pathname, []);
+
+  // 特殊页面不在菜单中
+  if (items.length === 1 && pathname === '/profile') {
+    items.push({ title: '个人信息' });
+  }
+
+  return items;
+}
 
 const AdminLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { token: themeToken } = theme.useToken();
   const { clearAuth } = useAuthStore();
+  const { menus } = useMenuStore();
   const user = useProfile();
+
+  const breadcrumbItems = useMemo(
+    () => buildBreadcrumbItems(menus, location.pathname),
+    [menus, location.pathname],
+  );
 
   const handleLogout = () => {
     clearAuth();
@@ -57,11 +92,22 @@ const AdminLayout = () => {
             flexShrink: 0,
           }}
         >
-          <div
-            style={{ cursor: 'pointer', fontSize: 18 }}
-            onClick={() => setCollapsed(!collapsed)}
-          >
-            {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div
+              style={{ cursor: 'pointer', fontSize: 18 }}
+              onClick={() => setCollapsed(!collapsed)}
+            >
+              {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            </div>
+            <Breadcrumb
+              items={breadcrumbItems.map((item, index) => ({
+                title: index === 0 ? (
+                  <a onClick={() => navigate('/dashboard')}>{item.title}</a>
+                ) : (
+                  item.title
+                ),
+              }))}
+            />
           </div>
           <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
             <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
