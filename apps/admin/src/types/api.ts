@@ -1,6 +1,8 @@
 export interface LoginParams {
   username: string;
   password: string;
+  captchaId: string;
+  captchaCode: string;
 }
 
 export interface LoginResult {
@@ -128,4 +130,112 @@ export interface QueryOperateLogParams {
   module?: string;
   description?: string;
   status?: number;
+}
+
+// ============ 角色管理 ============
+
+export interface MenuItem {
+  id: string;
+  parentId: string | null;
+  name: string | null;
+  type: number | null;
+  path: string | null;
+  component: string | null;
+  permission: string | null;
+  icon: string | null;
+  sort: number | null;
+  visible: number | null;
+  status: number | null;
+  createdAt?: string;
+  updatedAt?: string;
+  children?: MenuItem[];
+}
+
+export interface CreateMenuParams {
+  parentId?: string;
+  name: string;
+  type: number;
+  path?: string;
+  component?: string;
+  permission?: string;
+  icon?: string;
+  sort?: number;
+  visible?: number;
+  status?: number;
+}
+
+export interface UpdateMenuParams {
+  parentId?: string;
+  name?: string;
+  type?: number;
+  path?: string;
+  component?: string;
+  permission?: string;
+  icon?: string;
+  sort?: number;
+  visible?: number;
+  status?: number;
+}
+
+export interface QueryMenuParams {
+  name?: string;
+  type?: number;
+  status?: number;
+}
+
+export interface RoleItem {
+  id: string;
+  name: string;
+  code: string;
+  sort: number | null;
+  status: number | null;
+  remark: string | null;
+  createdAt: string;
+  updatedAt: string;
+  menuIds?: string[];
+}
+
+export interface RoleListResult {
+  list: RoleItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface CreateRoleParams {
+  name: string;
+  code: string;
+  sort?: number;
+  status?: number;
+  remark?: string;
+}
+
+export interface UpdateRoleParams {
+  name?: string;
+  code?: string;
+  sort?: number;
+  status?: number;
+  remark?: string;
+}
+
+export interface QueryRoleParams {
+  page?: number;
+  pageSize?: number;
+  name?: string;
+  code?: string;
+  status?: number;
+}
+
+// ============ 仪表盘 ============
+
+export interface DashboardStats {
+  userCount: number;
+}
+
+export interface UpdateProfileParams {
+  nickname?: string;
+  email?: string;
+  phone?: string;
+  gender?: number;
+  avatar?: string;
 }

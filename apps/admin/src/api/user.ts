@@ -18,3 +18,6 @@ export const deleteUser = (id: string) =>
 
 export const resetPassword = (id: string, newPassword: string) =>
   request.put<any, void>(`/system/user/${id}/reset-password`, { newPassword });
+
+export const assignUserRoles = (id: string, roleIds: string[]) =>
+  request.put<any, UserItem>(`/system/user/${id}/roles`, { roleIds });

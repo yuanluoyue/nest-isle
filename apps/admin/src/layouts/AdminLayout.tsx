@@ -1,78 +1,40 @@
 import { useState } from 'react';
-import { Layout, Menu, Avatar, Dropdown, theme } from 'antd';
-import type { MenuProps } from 'antd';
+import { Layout, Avatar, Dropdown, theme } from 'antd';
 import {
-  DashboardOutlined,
   UserOutlined,
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
-  SettingOutlined,
-  MonitorOutlined,
-  FileTextOutlined,
 } from '@ant-design/icons';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/auth';
+import { useMenuStore } from '../stores/menu';
 import { useProfile } from '../hooks/useProfile';
+import SideMenu from '../components/SideMenu';
 
-const { Header, Sider, Content } = Layout;
-
-const menuConfig: MenuProps['items'] = [
-  {
-    key: '/dashboard',
-    icon: <DashboardOutlined />,
-    label: '仪表盘',
-  },
-  {
-    key: '/system',
-    icon: <SettingOutlined />,
-    label: '系统管理',
-    children: [
-      {
-        key: '/system/user',
-        icon: <UserOutlined />,
-        label: '用户管理',
-      },
-    ],
-  },
-  {
-    key: '/monitor',
-    icon: <MonitorOutlined />,
-    label: '系统监控',
-    children: [
-      {
-        key: '/monitor/operate-log',
-        icon: <FileTextOutlined />,
-        label: '操作日志',
-      },
-    ],
-  },
-];
+const { Header, Content } = Layout;
 
 const AdminLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
   const { token: themeToken } = theme.useToken();
   const { clearAuth } = useAuthStore();
   const user = useProfile();
 
   const handleLogout = () => {
     clearAuth();
+    useMenuStore.getState().clearMenus();
     navigate('/login');
   };
 
-  // 计算选中和展开的菜单 key
-  const selectedKeys = [location.pathname];
-  const openKeys = collapsed
-    ? []
-    : location.pathname.split('/').filter(Boolean).reduce<string[]>((acc, _, i, arr) => {
-        const path = '/' + arr.slice(0, i + 1).join('/');
-        acc.push(path);
-        return acc;
-      }, []).slice(0, -1);
-
   const userMenuItems = [
+    {
+      key: 'profile',
+      icon: <UserOutlined />,
+      label: '个人信息',
+      onClick: () => navigate('/profile'),
+    },
+    { type: 'divider' as const },
     {
       key: 'logout',
       icon: <LogoutOutlined />,
@@ -83,22 +45,22 @@ const AdminLayout = () => {
 
   return (
     <Layout style={{ height: '100vh' }}>
-      <Sider trigger={null} collapsible collapsed={collapsed} style={{ overflow: 'auto', height: '100vh', position: 'sticky', top: 0 }}>
-        <div style={{ height: 32, margin: 16, background: 'rgba(255,255,255,0.2)', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 'bold', fontSize: collapsed ? 14 : 16 }}>
-          {collapsed ? 'NI' : 'Nest Isle'}
-        </div>
-        <Menu
-          theme="dark"
-          mode="inline"
-          selectedKeys={selectedKeys}
-          defaultOpenKeys={openKeys}
-          items={menuConfig}
-          onClick={({ key }) => navigate(key)}
-        />
-      </Sider>
+      <SideMenu collapsed={collapsed} />
       <Layout>
-        <Header style={{ padding: '0 16px', background: themeToken.colorBgContainer, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-          <div style={{ cursor: 'pointer', fontSize: 18 }} onClick={() => setCollapsed(!collapsed)}>
+        <Header
+          style={{
+            padding: '0 16px',
+            background: themeToken.colorBgContainer,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexShrink: 0,
+          }}
+        >
+          <div
+            style={{ cursor: 'pointer', fontSize: 18 }}
+            onClick={() => setCollapsed(!collapsed)}
+          >
             {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
           </div>
           <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
@@ -108,7 +70,15 @@ const AdminLayout = () => {
             </div>
           </Dropdown>
         </Header>
-        <Content style={{ margin: 16, padding: 24, background: themeToken.colorBgContainer, borderRadius: 8, overflow: 'auto' }}>
+        <Content
+          style={{
+            margin: 16,
+            padding: 24,
+            background: themeToken.colorBgContainer,
+            borderRadius: 8,
+            overflow: 'auto',
+          }}
+        >
           <Outlet />
         </Content>
       </Layout>

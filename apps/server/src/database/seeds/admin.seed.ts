@@ -64,6 +64,24 @@ async function seed() {
 
   // ============ 菜单和权限 ============
 
+  // 仪表盘菜单
+  let dashboardMenu = await db.query.sysMenu.findFirst({ where: eq(schema.sysMenu.name, '仪表盘') });
+  if (!dashboardMenu) {
+    const [created] = await db.insert(schema.sysMenu).values({
+      name: '仪表盘',
+      type: 1,
+      path: '/dashboard',
+      component: 'dashboard',
+      permission: 'dashboard:view',
+      icon: 'DashboardOutlined',
+      sort: 0,
+      visible: 0,
+      status: 0,
+    }).returning();
+    dashboardMenu = created;
+    console.log('Created menu: 仪表盘');
+  }
+
   // 系统管理目录
   let systemMenu = await db.query.sysMenu.findFirst({ where: eq(schema.sysMenu.name, '系统管理') });
   if (!systemMenu) {
@@ -112,6 +130,91 @@ async function seed() {
     if (!existing) {
       await db.insert(schema.sysMenu).values({
         parentId: userMenu.id,
+        name: btn.name,
+        type: 2,
+        permission: btn.permission,
+        sort: btn.sort,
+        visible: 0,
+        status: 0,
+      });
+      console.log(`Created button: ${btn.name}`);
+    }
+  }
+
+  // 角色管理菜单
+  let roleMenu = await db.query.sysMenu.findFirst({ where: eq(schema.sysMenu.name, '角色管理') });
+  if (!roleMenu) {
+    const [created] = await db.insert(schema.sysMenu).values({
+      parentId: systemMenu.id,
+      name: '角色管理',
+      type: 1,
+      path: '/system/role',
+      component: 'system/role',
+      permission: 'system:role:list',
+      icon: 'TeamOutlined',
+      sort: 2,
+      visible: 0,
+      status: 0,
+    }).returning();
+    roleMenu = created;
+    console.log('Created menu: 角色管理');
+  }
+
+  // 角色管理按钮权限
+  const roleButtons = [
+    { name: '角色新增', permission: 'system:role:create', sort: 1 },
+    { name: '角色编辑', permission: 'system:role:update', sort: 2 },
+    { name: '角色删除', permission: 'system:role:delete', sort: 3 },
+    { name: '分配权限', permission: 'system:role:assign', sort: 4 },
+  ];
+
+  for (const btn of roleButtons) {
+    const existing = await db.query.sysMenu.findFirst({ where: eq(schema.sysMenu.permission, btn.permission) });
+    if (!existing) {
+      await db.insert(schema.sysMenu).values({
+        parentId: roleMenu.id,
+        name: btn.name,
+        type: 2,
+        permission: btn.permission,
+        sort: btn.sort,
+        visible: 0,
+        status: 0,
+      });
+      console.log(`Created button: ${btn.name}`);
+    }
+  }
+
+  // 菜单管理菜单
+  let menuManageMenu = await db.query.sysMenu.findFirst({ where: eq(schema.sysMenu.name, '菜单管理') });
+  if (!menuManageMenu) {
+    const [created] = await db.insert(schema.sysMenu).values({
+      parentId: systemMenu.id,
+      name: '菜单管理',
+      type: 1,
+      path: '/system/menu',
+      component: 'system/menu',
+      permission: 'system:menu:list',
+      icon: 'MenuOutlined',
+      sort: 3,
+      visible: 0,
+      status: 0,
+    }).returning();
+    menuManageMenu = created;
+    console.log('Created menu: 菜单管理');
+  }
+
+  // 菜单管理按钮权限
+  const menuButtons = [
+    { name: '菜单新增', permission: 'system:menu:create', sort: 1 },
+    { name: '菜单编辑', permission: 'system:menu:update', sort: 2 },
+    { name: '菜单删除', permission: 'system:menu:delete', sort: 3 },
+  ];
+
+  for (const btn of menuButtons) {
+    const existing = await db.query.sysMenu.findFirst({ where: eq(schema.sysMenu.permission, btn.permission) });
+    if (!existing) {
+      await db.insert(schema.sysMenu).values({
+        parentId: menuManageMenu.id,
         name: btn.name,
         type: 2,
         permission: btn.permission,

@@ -221,4 +221,25 @@ export class UserService {
 
     await this.db.update(sysUser).set({ password: hashSync(newPassword, 10) }).where(eq(sysUser.id, id));
   }
+
+  async assignRoles(userId: string, roleIds: string[]) {
+    const user = await this.db.query.sysUser.findFirst({
+      where: and(eq(sysUser.id, userId), isNull(sysUser.deletedAt)),
+    });
+    if (!user) {
+      throw new NotFoundException('用户不存在');
+    }
+
+    // 先删除旧的关联
+    await this.db.delete(sysUserRole).where(eq(sysUserRole.userId, userId));
+
+    // 再批量插入新的关联
+    if (roleIds.length > 0) {
+      await this.db.insert(sysUserRole).values(
+        roleIds.map((roleId) => ({ userId, roleId })),
+      );
+    }
+
+    return this.findOne(userId);
+  }
 }

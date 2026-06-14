@@ -1,15 +1,20 @@
 import { useEffect } from 'react';
 import { useAuthStore } from '../stores/auth';
-import { getProfile } from '../api/auth';
+import { useMenuStore } from '../stores/menu';
+import { getProfile, getUserMenus } from '../api/auth';
 
 export function useProfile() {
-  const { user, setUser } = useAuthStore();
+  const { setUser } = useAuthStore();
+  const { setMenus } = useMenuStore();
 
   useEffect(() => {
-    if (useAuthStore.getState().accessToken && !user) {
-      getProfile().then(setUser).catch(() => {});
-    }
+    const token = useAuthStore.getState().accessToken;
+    if (!token) return;
+
+    // 每次都重新获取用户信息和菜单
+    getProfile().then(setUser).catch(() => {});
+    getUserMenus().then(setMenus).catch(() => {});
   }, []);
 
-  return user;
+  return useAuthStore((s) => s.user);
 }

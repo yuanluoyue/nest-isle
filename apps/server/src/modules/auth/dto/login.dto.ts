@@ -11,4 +11,14 @@ export class LoginDto {
   @IsString()
   @IsNotEmpty()
   password: string;
+
+  @ApiProperty({ description: '验证码ID' })
+  @IsString()
+  @IsNotEmpty()
+  captchaId: string;
+
+  @ApiProperty({ description: '验证码' })
+  @IsString()
+  @IsNotEmpty()
+  captchaCode: string;
 }

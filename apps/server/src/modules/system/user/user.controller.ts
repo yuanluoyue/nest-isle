@@ -5,6 +5,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { QueryUserDto } from './dto/query-user.dto';
 import { ResetPasswordDto } from './dto/password.dto';
+import { AssignRoleDto } from './dto/assign-role.dto';
 import { JwtAuthGuard } from '../../../core/auth/jwt-auth.guard';
 import { OperateLog } from '../../../common/decorator/operate-log.decorator';
 
@@ -53,5 +54,12 @@ export class UserController {
   @OperateLog({ module: '用户管理', action: '重置密码' })
   resetPassword(@Param('id') id: string, @Body() dto: ResetPasswordDto) {
     return this.userService.resetPassword(id, dto);
+  }
+
+  @Put(':id/roles')
+  @ApiOperation({ summary: '分配用户角色' })
+  @OperateLog({ module: '用户管理', action: '分配角色' })
+  assignRoles(@Param('id') id: string, @Body() dto: AssignRoleDto) {
+    return this.userService.assignRoles(id, dto.roleIds);
   }
 }

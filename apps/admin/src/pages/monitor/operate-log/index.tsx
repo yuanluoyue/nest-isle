@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Table, Card, Button, Input, Select, Space, Tag, Row, Col, Modal } from 'antd';
-import { ReloadOutlined } from '@ant-design/icons';
+import { Table, Card, Button, Input, Select, Space, Tag, Row, Col, Modal, Tooltip } from 'antd';
+import { ReloadOutlined, EyeOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import type { OperateLogItem, QueryOperateLogParams } from '../../../types/api';
 import { getOperateLogList, getOperateLogDetail } from '../../../api/operate-log';
@@ -78,10 +78,12 @@ const OperateLogPage = () => {
     },
     {
       title: '操作',
-      width: 80,
+      width: 60,
       fixed: 'right',
       render: (_, record) => (
-        <Button type="link" size="small" onClick={() => handleDetail(record)}>详情</Button>
+        <Tooltip title="详情">
+          <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => handleDetail(record)} />
+        </Tooltip>
       ),
     },
   ];

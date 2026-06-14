@@ -1,7 +1,9 @@
-import { RouterProvider } from 'react-router-dom';
+import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import { ConfigProvider } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
-import router from './router';
+import { routeObjects } from './router/routes';
+
+const router = createBrowserRouter(routeObjects);
 
 function App() {
   return (

@@ -13,11 +13,14 @@ import {
   Popconfirm,
   Row,
   Col,
+  Transfer,
+  Tooltip,
 } from 'antd';
-import { PlusOutlined, ReloadOutlined, KeyOutlined } from '@ant-design/icons';
+import { PlusOutlined, ReloadOutlined, KeyOutlined, TeamOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
-import type { UserItem, CreateUserParams, QueryUserParams } from '../../../types/api';
-import { getUserList, createUser, updateUser, deleteUser, resetPassword } from '../../../api/user';
+import type { UserItem, CreateUserParams, QueryUserParams, RoleItem } from '../../../types/api';
+import { getUserList, createUser, updateUser, deleteUser, resetPassword, assignUserRoles, getUserDetail } from '../../../api/user';
+import { getRoleList } from '../../../api/role';
 
 const genderMap: Record<number, string> = { 0: '未知', 1: '男', 2: '女' };
 const statusMap: Record<number, { color: string; text: string }> = {
@@ -41,6 +44,13 @@ const UserPage = () => {
   const [resetModalOpen, setResetModalOpen] = useState(false);
   const [resetUserId, setResetUserId] = useState<string>('');
   const [resetForm] = Form.useForm();
+
+  // 分配角色弹窗
+  const [roleModalOpen, setRoleModalOpen] = useState(false);
+  const [roleUserId, setRoleUserId] = useState<string>('');
+  const [roleLoading, setRoleLoading] = useState(false);
+  const [allRoles, setAllRoles] = useState<RoleItem[]>([]);
+  const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -129,6 +139,39 @@ const UserPage = () => {
     }
   };
 
+  // 分配角色
+  const handleAssignRole = async (record: UserItem) => {
+    setRoleUserId(record.id);
+    setRoleLoading(true);
+    try {
+      const [rolesRes, userDetail] = await Promise.all([
+        getRoleList({ page: 1, pageSize: 999 }),
+        getUserDetail(record.id),
+      ]);
+      setAllRoles(rolesRes.list);
+      setSelectedRoleIds(userDetail.roles?.map((r) => r.id) || []);
+      setRoleModalOpen(true);
+    } catch {
+      message.error('获取角色数据失败');
+    } finally {
+      setRoleLoading(false);
+    }
+  };
+
+  const handleRoleOk = async () => {
+    setRoleLoading(true);
+    try {
+      await assignUserRoles(roleUserId, selectedRoleIds);
+      message.success('分配角色成功');
+      setRoleModalOpen(false);
+      fetchData();
+    } catch {
+      message.error('分配角色失败');
+    } finally {
+      setRoleLoading(false);
+    }
+  };
+
   const columns: ColumnsType<UserItem> = [
     { title: '用户名', dataIndex: 'username', width: 120 },
     { title: '昵称', dataIndex: 'nickname', width: 120 },
@@ -159,15 +202,24 @@ const UserPage = () => {
     },
     {
       title: '操作',
-      width: 200,
+      width: 160,
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
-          <Button type="link" size="small" onClick={() => handleEdit(record)}>编辑</Button>
-          <Button type="link" size="small" icon={<KeyOutlined />} onClick={() => handleResetPassword(record)}>重置密码</Button>
+          <Tooltip title="编辑">
+            <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} />
+          </Tooltip>
+          <Tooltip title="分配角色">
+            <Button type="link" size="small" icon={<TeamOutlined />} onClick={() => handleAssignRole(record)} />
+          </Tooltip>
+          <Tooltip title="重置密码">
+            <Button type="link" size="small" icon={<KeyOutlined />} onClick={() => handleResetPassword(record)} />
+          </Tooltip>
           {record.username !== 'admin' && (
             <Popconfirm title="确定删除该用户吗？" onConfirm={() => handleDelete(record.id)}>
-              <Button type="link" size="small" danger>删除</Button>
+              <Tooltip title="删除">
+                <Button type="link" size="small" danger icon={<DeleteOutlined />} />
+              </Tooltip>
             </Popconfirm>
           )}
         </Space>
@@ -245,7 +297,7 @@ const UserPage = () => {
           columns={columns}
           dataSource={data}
           loading={loading}
-          scroll={{ x: 1200 }}
+          scroll={{ x: 1300 }}
           pagination={{
             current: query.page,
             pageSize: query.pageSize,
@@ -345,6 +397,27 @@ const UserPage = () => {
             <Input.Password placeholder="请输入新密码" />
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* 分配角色弹窗 */}
+      <Modal
+        title="分配角色"
+        open={roleModalOpen}
+        onOk={handleRoleOk}
+        onCancel={() => setRoleModalOpen(false)}
+        confirmLoading={roleLoading}
+        width={600}
+        destroyOnClose
+      >
+        <Transfer
+          dataSource={allRoles.map((r) => ({ key: r.id, title: r.name, description: r.code }))}
+          targetKeys={selectedRoleIds}
+          onChange={(targetKeys) => setSelectedRoleIds(targetKeys as string[])}
+          render={(item) => item.title!}
+          listStyle={{ width: 250, height: 400 }}
+          showSearch
+          filterOption={(inputValue, item) => (item.title ?? '').toLowerCase().includes(inputValue.toLowerCase())}
+        />
       </Modal>
     </div>
   );

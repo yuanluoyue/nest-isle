@@ -1,29 +1,27 @@
+import { useEffect, useState } from 'react';
 import { Card, Col, Row, Statistic } from 'antd';
-import { UserOutlined, FileOutlined, TeamOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { UserOutlined } from '@ant-design/icons';
+import { getDashboardStats } from '../../api/dashboard';
+import type { DashboardStats } from '../../types/api';
 
 const DashboardPage = () => {
+  const [stats, setStats] = useState<DashboardStats>({ userCount: 0 });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getDashboardStats()
+      .then(setStats)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <div>
       <h2 style={{ marginBottom: 24 }}>仪表盘</h2>
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic title="用户总数" value={128} prefix={<UserOutlined />} />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic title="角色数量" value={8} prefix={<TeamOutlined />} />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic title="文件数量" value={56} prefix={<FileOutlined />} />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic title="今日在线" value={12} prefix={<CheckCircleOutlined />} valueStyle={{ color: '#52c41a' }} />
+          <Card loading={loading}>
+            <Statistic title="用户总数" value={stats.userCount} prefix={<UserOutlined />} />
           </Card>
         </Col>
       </Row>

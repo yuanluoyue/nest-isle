@@ -2,15 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { Form, Input, Button, Card, Checkbox, message } from 'antd';
 import { UserOutlined, LockOutlined, SafetyOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { login } from '../../api/auth';
+import { login, getCaptcha } from '../../api/auth';
 import { useAuthStore, saveRememberPassword, getRememberPassword, clearRememberPassword } from '../../stores/auth';
-import { generateCaptcha } from '../../utils/captcha';
 
 const LoginPage = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [captchaUrl, setCaptchaUrl] = useState('');
-  const [captchaText, setCaptchaText] = useState('');
+  const [captchaSvg, setCaptchaSvg] = useState('');
+  const [captchaId, setCaptchaId] = useState('');
   const navigate = useNavigate();
   const { setTokens, setUser, accessToken } = useAuthStore();
 
@@ -26,22 +25,25 @@ const LoginPage = () => {
     }
   }, []);
 
-  const refreshCaptcha = useCallback(() => {
-    const { canvas, text } = generateCaptcha();
-    setCaptchaUrl(canvas.toDataURL());
-    setCaptchaText(text);
+  const refreshCaptcha = useCallback(async () => {
+    try {
+      const data = await getCaptcha();
+      setCaptchaId(data.captchaId);
+      setCaptchaSvg(data.svg);
+    } catch {
+      message.error('获取验证码失败');
+    }
   }, []);
 
-  const handleSubmit = async (values: { username: string; password: string; captcha: string; remember: boolean }) => {
-    if (values.captcha.toLowerCase() !== captchaText.toLowerCase()) {
-      message.error('验证码错误');
-      refreshCaptcha();
-      return;
-    }
-
+  const handleSubmit = async (values: { username: string; password: string; captchaCode: string; remember: boolean }) => {
     setLoading(true);
     try {
-      const result = await login({ username: values.username, password: values.password });
+      const result = await login({
+        username: values.username,
+        password: values.password,
+        captchaId,
+        captchaCode: values.captchaCode,
+      });
       setTokens(result.accessToken, result.refreshToken);
       setUser(result.user);
 
@@ -75,17 +77,16 @@ const LoginPage = () => {
           <Form.Item name="password" rules={[{ required: true, message: '请输入密码' }]}>
             <Input.Password prefix={<LockOutlined />} placeholder="密码" />
           </Form.Item>
-          <Form.Item name="captcha" rules={[{ required: true, message: '请输入验证码' }]}>
+          <Form.Item name="captchaCode" rules={[{ required: true, message: '请输入验证码' }]}>
             <Input
               prefix={<SafetyOutlined />}
               placeholder="验证码"
               suffix={
-                <img
-                  src={captchaUrl}
-                  alt="验证码"
+                <div
                   onClick={refreshCaptcha}
-                  style={{ height: 32, cursor: 'pointer', borderRadius: 4 }}
+                  style={{ height: 32, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
                   title="点击刷新"
+                  dangerouslySetInnerHTML={{ __html: captchaSvg }}
                 />
               }
             />
