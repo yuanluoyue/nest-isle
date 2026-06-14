@@ -132,6 +132,37 @@ export interface QueryOperateLogParams {
   status?: number;
 }
 
+// ============ 登录日志 ============
+
+export interface LoginLogItem {
+  id: string;
+  userId: string | null;
+  username: string | null;
+  ip: string | null;
+  location: string | null;
+  browser: string | null;
+  os: string | null;
+  userAgent: string | null;
+  status: number | null;
+  message: string | null;
+  createdAt: string | null;
+}
+
+export interface LoginLogListResult {
+  list: LoginLogItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface QueryLoginLogParams {
+  page?: number;
+  pageSize?: number;
+  username?: string;
+  ip?: string;
+  status?: number;
+}
+
 // ============ 角色管理 ============
 
 export interface MenuItem {

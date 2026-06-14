@@ -1,5 +1,6 @@
-import { Controller, Post, Get, Put, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Put, Body, Req, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { Request } from 'express';
 import { AuthService } from './auth.service';
 import { CaptchaService } from './captcha.service';
 import { LoginDto } from './dto/login.dto';
@@ -24,8 +25,10 @@ export class AuthController {
 
   @Post('login')
   @ApiOperation({ summary: '用户登录' })
-  login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+  login(@Body() dto: LoginDto, @Req() req: Request) {
+    const ip = req.ip || req.socket.remoteAddress || null;
+    const userAgent = req.headers['user-agent'] ?? null;
+    return this.authService.login(dto, { ip, userAgent });
   }
 
   @Get('profile')

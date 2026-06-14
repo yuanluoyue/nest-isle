@@ -9,6 +9,12 @@ import configuration from '../../config/configuration';
 import { DatabaseService } from '../../database/database.service';
 import { CaptchaService } from './captcha.service';
 import { FileService } from '../file/file.service';
+import { LoginLogService } from '../monitor/login-log/login-log.service';
+
+export interface LoginContext {
+  ip?: string | null;
+  userAgent?: string | null;
+}
 
 @Injectable()
 export class AuthService {
@@ -18,15 +24,26 @@ export class AuthService {
     private databaseService: DatabaseService,
     private captchaService: CaptchaService,
     private fileService: FileService,
+    private loginLogService: LoginLogService,
   ) {}
 
   private get db() {
     return this.databaseService.db;
   }
 
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto, context: LoginContext = {}) {
+    const ip = context.ip ?? null;
+    const userAgent = context.userAgent ?? null;
+
     // 验证验证码
     if (!this.captchaService.verify(dto.captchaId, dto.captchaCode)) {
+      await this.loginLogService.record({
+        username: dto.username,
+        ip,
+        userAgent,
+        status: 1,
+        message: '验证码错误或已过期',
+      });
       throw new BadRequestException('验证码错误或已过期');
     }
 
@@ -35,14 +52,39 @@ export class AuthService {
     });
 
     if (!user || !user.password || !compareSync(dto.password, user.password)) {
+      await this.loginLogService.record({
+        userId: user?.id ?? null,
+        username: dto.username,
+        ip,
+        userAgent,
+        status: 1,
+        message: '用户名或密码错误',
+      });
       throw new UnauthorizedException('用户名或密码错误');
     }
 
     if (user.status === 1) {
+      await this.loginLogService.record({
+        userId: user.id,
+        username: dto.username,
+        ip,
+        userAgent,
+        status: 1,
+        message: '账号已被禁用',
+      });
       throw new UnauthorizedException('账号已被禁用');
     }
 
     const { accessToken, refreshToken } = await this.generateTokens(user.id, user.username!);
+
+    await this.loginLogService.record({
+      userId: user.id,
+      username: user.username,
+      ip,
+      userAgent,
+      status: 0,
+      message: '登录成功',
+    });
 
     return {
       accessToken,

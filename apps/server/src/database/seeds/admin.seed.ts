@@ -261,6 +261,25 @@ async function seed() {
     console.log('Created menu: 操作日志');
   }
 
+  // 登录日志菜单
+  let loginLogMenu = await db.query.sysMenu.findFirst({ where: eq(schema.sysMenu.name, '登录日志') });
+  if (!loginLogMenu) {
+    const [created] = await db.insert(schema.sysMenu).values({
+      parentId: monitorMenu.id,
+      name: '登录日志',
+      type: 1,
+      path: '/monitor/login-log',
+      component: 'monitor/login-log',
+      permission: 'monitor:login-log:list',
+      icon: 'FileTextOutlined',
+      sort: 2,
+      visible: 0,
+      status: 0,
+    }).returning();
+    loginLogMenu = created;
+    console.log('Created menu: 登录日志');
+  }
+
   // 给 admin 角色分配菜单权限
   const menus = await db.query.sysMenu.findMany();
   for (const menu of menus) {
