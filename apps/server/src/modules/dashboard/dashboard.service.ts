@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { eq, isNull, count } from 'drizzle-orm';
-import { sysUser } from '../../database/schema';
+import { isNull, count, sum } from 'drizzle-orm';
+import { sysUser, sysFile } from '../../database/schema';
 import { DatabaseService } from '../../database/database.service';
 
 @Injectable()
@@ -17,8 +17,14 @@ export class DashboardService {
       .from(sysUser)
       .where(isNull(sysUser.deletedAt));
 
+    const [fileSize] = await this.db
+      .select({ totalSize: sum(sysFile.size) })
+      .from(sysFile)
+      .where(isNull(sysFile.deletedAt));
+
     return {
       userCount: userCount.count,
+      totalFileSize: Number(fileSize.totalSize) || 0,
     };
   }
 }

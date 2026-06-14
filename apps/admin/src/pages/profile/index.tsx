@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Card, Descriptions, Avatar, Tag, Button, Form, Input, Select, message, Spin } from 'antd';
-import { UserOutlined, EditOutlined } from '@ant-design/icons';
+import { Card, Descriptions, Avatar, Tag, Button, Form, Input, Select, Upload, message, Spin, theme } from 'antd';
+import { UserOutlined, EditOutlined, CameraOutlined } from '@ant-design/icons';
 import { getProfile, updateProfile } from '../../api/auth';
+import { uploadAvatar } from '../../api/file';
+import { useAuthStore } from '../../stores/auth';
 import type { UserProfile, UpdateProfileParams } from '../../types/api';
 
 const genderOptions = [
@@ -20,12 +22,28 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [form] = Form.useForm();
+  const { token: themeToken } = theme.useToken();
+  const { setUser } = useAuthStore();
+
+  // 同步更新 auth store 中的用户信息
+  const syncToAuthStore = (updated: UserProfile) => {
+    setUser({
+      id: updated.id,
+      username: updated.username,
+      nickname: updated.nickname,
+      avatar: updated.avatar,
+    });
+  };
 
   const fetchProfile = () => {
     setLoading(true);
     getProfile()
-      .then(setProfile)
+      .then((data) => {
+        setProfile(data);
+        setAvatarUrl(data.avatar);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   };
@@ -33,6 +51,21 @@ const ProfilePage = () => {
   useEffect(() => {
     fetchProfile();
   }, []);
+
+  const handleAvatarUpload = async (file: File) => {
+    try {
+      const result = await uploadAvatar(file);
+      setAvatarUrl(result.url);
+      // 同步更新头像到个人信息
+      const updated = await updateProfile({ avatar: result.url });
+      setProfile(updated);
+      syncToAuthStore(updated);
+      message.success('头像更新成功');
+    } catch (err: any) {
+      message.error(err.message || '头像上传失败');
+    }
+    return false;
+  };
 
   const handleEdit = () => {
     form.setFieldsValue({
@@ -54,6 +87,7 @@ const ProfilePage = () => {
     try {
       const updated = await updateProfile(values);
       setProfile(updated);
+      syncToAuthStore(updated);
       setEditing(false);
       message.success('修改成功');
     } catch (err: any) {
@@ -75,7 +109,36 @@ const ProfilePage = () => {
     <div>
       <Card style={{ maxWidth: 800 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
-          <Avatar size={64} src={profile?.avatar} icon={!profile?.avatar ? <UserOutlined /> : undefined} />
+          <Upload
+            showUploadList={false}
+            accept="image/*"
+            beforeUpload={(file) => {
+              handleAvatarUpload(file);
+              return false;
+            }}
+          >
+            <div style={{ position: 'relative', cursor: 'pointer' }}>
+              <Avatar size={64} src={avatarUrl} icon={!avatarUrl ? <UserOutlined /> : undefined} />
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  right: 0,
+                  width: 20,
+                  height: 20,
+                  borderRadius: '50%',
+                  background: themeToken.colorPrimary,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#fff',
+                  fontSize: 10,
+                }}
+              >
+                <CameraOutlined />
+              </div>
+            </div>
+          </Upload>
           <div>
             <h2 style={{ margin: 0 }}>{profile?.nickname || profile?.username}</h2>
             <span style={{ color: '#999' }}>@{profile?.username}</span>

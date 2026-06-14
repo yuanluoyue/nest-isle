@@ -230,6 +230,7 @@ export interface QueryRoleParams {
 
 export interface DashboardStats {
   userCount: number;
+  totalFileSize: number;
 }
 
 export interface UpdateProfileParams {

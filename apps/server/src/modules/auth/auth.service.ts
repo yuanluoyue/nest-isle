@@ -8,6 +8,7 @@ import { compareSync } from 'bcryptjs';
 import configuration from '../../config/configuration';
 import { DatabaseService } from '../../database/database.service';
 import { CaptchaService } from './captcha.service';
+import { FileService } from '../file/file.service';
 
 @Injectable()
 export class AuthService {
@@ -16,6 +17,7 @@ export class AuthService {
     private configService: ConfigService,
     private databaseService: DatabaseService,
     private captchaService: CaptchaService,
+    private fileService: FileService,
   ) {}
 
   private get db() {
@@ -77,6 +79,16 @@ export class AuthService {
   }
 
   async updateProfile(userId: string, dto: { nickname?: string; email?: string; phone?: string; gender?: number; avatar?: string }) {
+    // 如果更新了头像，先取出旧头像 URL，用于后续删除
+    let oldAvatar: string | null = null;
+    if (dto.avatar !== undefined) {
+      const current = await this.db.query.sysUser.findFirst({
+        where: eq(sysUser.id, userId),
+        columns: { avatar: true },
+      });
+      oldAvatar = current?.avatar ?? null;
+    }
+
     await this.db
       .update(sysUser)
       .set({
@@ -88,6 +100,11 @@ export class AuthService {
         updatedAt: new Date(),
       })
       .where(eq(sysUser.id, userId));
+
+    // 头像有变更且与新头像不同，删除旧资源
+    if (dto.avatar !== undefined && oldAvatar && oldAvatar !== dto.avatar) {
+      await this.fileService.deleteByUrl(oldAvatar);
+    }
 
     return this.profile(userId);
   }
