@@ -94,7 +94,7 @@ const AdminLayout = () => {
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div
-              style={{ cursor: 'pointer', fontSize: 18 }}
+              style={{ cursor: 'pointer', fontSize: 18, marginRight: 12 }}
               onClick={() => setCollapsed(!collapsed)}
             >
               {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}

@@ -442,6 +442,58 @@ async function seed() {
     console.log('Created menu: 登录日志');
   }
 
+  // 定时任务菜单
+  let jobMenu = await db.query.sysMenu.findFirst({
+    where: eq(schema.sysMenu.name, '定时任务'),
+  });
+  if (!jobMenu) {
+    const [created] = await db
+      .insert(schema.sysMenu)
+      .values({
+        parentId: monitorMenu.id,
+        name: '定时任务',
+        type: 1,
+        path: '/monitor/job',
+        component: 'monitor/job',
+        permission: 'monitor:job:list',
+        icon: 'ScheduleOutlined',
+        sort: 3,
+        visible: 0,
+        status: 0,
+      })
+      .returning();
+    jobMenu = created;
+    console.log('Created menu: 定时任务');
+  }
+
+  // 定时任务按钮权限
+  const jobButtons = [
+    { name: '任务新增', permission: 'monitor:job:create', sort: 1 },
+    { name: '任务编辑', permission: 'monitor:job:update', sort: 2 },
+    { name: '任务删除', permission: 'monitor:job:delete', sort: 3 },
+    { name: '任务启动', permission: 'monitor:job:start', sort: 4 },
+    { name: '任务停止', permission: 'monitor:job:stop', sort: 5 },
+    { name: '立即执行', permission: 'monitor:job:run', sort: 6 },
+  ];
+
+  for (const btn of jobButtons) {
+    const existing = await db.query.sysMenu.findFirst({
+      where: eq(schema.sysMenu.permission, btn.permission),
+    });
+    if (!existing) {
+      await db.insert(schema.sysMenu).values({
+        parentId: jobMenu.id,
+        name: btn.name,
+        type: 2,
+        permission: btn.permission,
+        sort: btn.sort,
+        visible: 0,
+        status: 0,
+      });
+      console.log(`Created button: ${btn.name}`);
+    }
+  }
+
   // 给 admin 角色分配菜单权限
   const menus = await db.query.sysMenu.findMany();
   for (const menu of menus) {

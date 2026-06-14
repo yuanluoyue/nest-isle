@@ -23,6 +23,7 @@ const DictPage = React.lazy(() => import('../pages/system/dict'));
 const NoticePage = React.lazy(() => import('../pages/system/notice'));
 const OperateLogPage = React.lazy(() => import('../pages/monitor/operate-log'));
 const LoginLogPage = React.lazy(() => import('../pages/monitor/login-log'));
+const JobPage = React.lazy(() => import('../pages/monitor/job'));
 const ProfilePage = React.lazy(() => import('../pages/profile'));
 const NotFoundPage = React.lazy(() => import('../pages/404'));
 
@@ -59,6 +60,7 @@ export const routeObjects: RouteObject[] = [
         children: [
           { path: 'operate-log', element: LazyLoad(OperateLogPage) },
           { path: 'login-log', element: LazyLoad(LoginLogPage) },
+          { path: 'job', element: LazyLoad(JobPage) },
         ],
       },
       { path: '*', element: LazyLoad(NotFoundPage) },

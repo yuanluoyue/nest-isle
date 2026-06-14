@@ -404,3 +404,80 @@ export interface QueryNoticeParams {
   category?: string;
   status?: number;
 }
+
+// ============ 定时任务 ============
+
+export interface JobItem {
+  id: string;
+  name: string | null;
+  group: string | null;
+  handler: string | null;
+  cron: string | null;
+  status: number | null; // 0=暂停 1=运行
+  remark: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface JobListResult {
+  list: JobItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface CreateJobParams {
+  name: string;
+  group?: string;
+  handler: string;
+  cron: string;
+  status?: number;
+  remark?: string;
+}
+
+export interface UpdateJobParams {
+  name?: string;
+  group?: string;
+  handler?: string;
+  cron?: string;
+  status?: number;
+  remark?: string;
+}
+
+export interface QueryJobParams {
+  page?: number;
+  pageSize?: number;
+  name?: string;
+  group?: string;
+  handler?: string;
+  status?: number;
+}
+
+// ============ 任务日志 ============
+
+export interface JobLogItem {
+  id: string;
+  jobId: string | null;
+  handler: string | null;
+  status: number | null; // 0=成功 1=失败
+  result: string | null;
+  error: string | null;
+  startedAt: string | null;
+  finishedAt: string | null;
+  createdAt: string | null;
+}
+
+export interface JobLogListResult {
+  list: JobLogItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface QueryJobLogParams {
+  page?: number;
+  pageSize?: number;
+  jobId?: string;
+  handler?: string;
+  status?: number;
+}
