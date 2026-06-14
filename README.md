@@ -1,166 +1,174 @@
 # Nest Isle
 
-基于 NestJS + React 的通用后台管理系统模板，pnpm monorepo 架构，开箱即用。
+基于 NestJS + React 的后台管理系统，pnpm monorepo 架构。
 
 ## 技术栈
 
-### 后端（apps/server）
-- NestJS 11 + SWC
-- Drizzle ORM + PostgreSQL
-- JWT 双 Token 认证（accessToken + refreshToken）
-- Passport + svg-captcha 登录验证码
-- MinIO 对象存储（基于 StorageAdapter 抽象，可扩展 S3/OSS/COS）
-- Winston 日志 + 每日滚动
-- Swagger API 文档
-- 全局：TraceId 中间件、统一响应拦截、全局异常过滤、操作日志拦截器
+**后端** — NestJS 11 + SWC · Drizzle ORM + PostgreSQL · Redis · MinIO · JWT Session 认证
 
-### 前端（apps/admin）
-- React 19 + Vite 6 + TypeScript
-- Ant Design 6
-- Zustand 5（仅持久化 tokens）
-- React Router v7
-- Axios 封装请求、自动刷新 Token
+**前端** — React 19 + Vite 6 · Ant Design 6 · Zustand 5 · React Router v7
 
-### 基础设施
-- pnpm workspace（monorepo）
-- Docker Compose：PostgreSQL 16 + MinIO
+**基础设施** — Docker Compose（PostgreSQL 16 + Redis + MinIO）
 
-## 已实现功能
+## 功能模块
 
-- **认证**：登录（含图形验证码）、JWT 双 Token、刷新令牌、获取/修改个人信息、上传头像（替换头像时自动清理旧资源）
-- **权限**：基于 RBAC（用户-角色-菜单），动态菜单 + 按钮级权限
-- **系统管理**：用户管理、角色管理、菜单管理
-- **系统监控**：操作日志、登录日志（记录 IP、UA、浏览器、操作系统、状态、消息）
-- **仪表盘**：用户数、文件总大小等统计
-- **文件系统**：StorageAdapter 抽象 + MinIO 实现，头像与普通文件分目录存储（avatars/、uploads/）
-- **个人中心**：查看/编辑信息、上传头像、面包屑导航
+| 模块 | 功能 |
+| --- | --- |
+| 认证 | 登录（验证码）、JWT 双 Token、无感刷新、登出 |
+| 会话管理 | Session 存 Redis、在线状态查询、强制下线 |
+| RBAC 权限 | 用户-角色-菜单、动态菜单、按钮级权限 |
+| 用户管理 | CRUD、重置密码、分配角色 |
+| 角色管理 | CRUD、分配菜单权限 |
+| 菜单管理 | 树形 CRUD、目录/菜单/按钮三种类型 |
+| 字典管理 | 字典类型 + 字典项 CRUD |
+| 通知公告 | CRUD、草稿/发布/归档状态、分类管理 |
+| 系统配置 | CRUD、Redis 缓存、刷新缓存 |
+| 定时任务 | CRUD、Cron 调度、启动/停止/立即执行 |
+| 操作日志 | 自动记录敏感操作 |
+| 登录日志 | 记录 IP、UA、浏览器、OS |
+| 文件管理 | StorageAdapter 抽象 + MinIO 实现 |
+| 仪表盘 | 用户数、文件大小等统计 |
+| 个人中心 | 查看/编辑信息、上传头像 |
+
+## 认证流程
+
+```
+登录：验证码校验 → 账号密码 → 创建 Session → 写 Redis → 签发 JWT
+鉴权：解析 JWT → 获取 sid → 查询 Redis → 有效则通过
+登出：删除 Redis Session → 更新数据库
+强制下线：删除 Redis Session → 用户请求立即 401
+```
+
+JWT Payload：`{ sub: userId, sid: sessionId, type: userType }`
 
 ## 目录结构
 
 ```
 nest-isle/
 ├── apps/
-│   ├── admin/                # React 前端
+│   ├── admin/                  # React 前端
 │   │   └── src/
-│   │       ├── api/          # 接口封装
-│   │       ├── components/   # 公共组件
+│   │       ├── api/            # 接口封装
+│   │       ├── components/     # 公共组件
 │   │       ├── hooks/
-│   │       ├── layouts/      # AdminLayout
-│   │       ├── pages/        # 页面
-│   │       ├── router/       # 路由
-│   │       ├── stores/       # Zustand
+│   │       ├── layouts/        # AdminLayout
+│   │       ├── pages/          # 页面（按模块划分）
+│   │       ├── router/         # 路由（懒加载 + 认证守卫）
+│   │       ├── stores/         # Zustand
 │   │       ├── types/
-│   │       └── utils/        # request 等
-│   └── server/               # NestJS 后端
+│   │       └── utils/          # Axios 封装、自动刷新 Token
+│   └── server/                 # NestJS 后端
 │       └── src/
-│           ├── common/       # 中间件、拦截器、过滤器、装饰器
-│           ├── config/       # 配置
-│           ├── core/         # auth/cache/logger/queue 基础设施
-│           ├── database/     # Drizzle schema、migrations、seeds
-│           └── modules/      # 业务模块
-│               ├── auth/
+│           ├── common/         # 中间件、拦截器、过滤器、装饰器
+│           ├── config/         # 配置
+│           ├── core/           # 基础设施
+│           │   ├── auth/       # JWT 策略、Guard、CurrentUser 装饰器
+│           │   ├── cache/      # CacheService 抽象 + Redis 实现
+│           │   ├── logger/     # Winston + 每日滚动
+│           │   ├── queue/      # BullMQ
+│           │   └── storage/    # StorageAdapter 抽象 + MinIO 实现
+│           ├── database/       # Drizzle schema、migrations、seeds
+│           └── modules/        # 业务模块
+│               ├── auth/       # 登录、验证码、个人信息
 │               ├── dashboard/
 │               ├── file/
 │               ├── health/
-│               ├── monitor/  # operate-log、login-log
-│               └── system/   # user、role、menu
+│               ├── monitor/    # 操作日志、登录日志、定时任务、会话管理
+│               └── system/    # 用户、角色、菜单、字典、通知、配置
 ├── docker/
 │   └── docker-compose.dev.yml
-├── data/                     # postgres / minio 持久化目录（gitignored）
-└── .trae/rules/              # 项目规则（数据库迁移、API 开发、UI 设计）
+├── data/                       # 持久化目录（gitignored）
+└── .trae/rules/                # 项目规则
 ```
 
 ## 快速开始
 
-### 1. 环境要求
+### 环境要求
+
 - Node.js ≥ 20
 - pnpm ≥ 10
-- Docker（用于本地 PostgreSQL + MinIO）
+- Docker
 
-### 2. 安装依赖
+### 安装
 
 ```bash
 pnpm install
 ```
 
-### 3. 启动基础服务
+### 启动基础服务
 
 ```bash
 pnpm docker:dev
 ```
 
-启动后会拉起：
-- PostgreSQL：`localhost:5432`（user/password: `postgres/postgres`，db: `nest_isle`）
-- MinIO API：`localhost:9000`，控制台：`localhost:9001`（账号 `minioadmin/minioadmin`）
+| 服务 | 地址 | 凭证 |
+| --- | --- | --- |
+| PostgreSQL | `localhost:5432` | `postgres / postgres`，数据库 `nest_isle` |
+| Redis | `localhost:6379` | 无密码 |
+| MinIO API | `localhost:9000` | `minioadmin / minioadmin` |
+| MinIO 控制台 | `localhost:9001` | `minioadmin / minioadmin` |
 
-### 4. 初始化数据库
-
-```bash
-# 执行迁移
-pnpm --filter server run db:migrate
-
-# 写入种子数据（管理员账号 + 菜单/权限）
-pnpm db:seed
-```
-
-种子默认创建：
-- 部门：`总公司`
-- 角色：`admin`（超级管理员）
-- 用户：`admin / 123456`
-- 菜单：仪表盘、系统管理（用户/角色/菜单）、系统监控（操作日志/登录日志）
-
-### 5. 启动开发服务
+### 初始化数据库
 
 ```bash
-# 后端：http://localhost:3000  Swagger：http://localhost:3000/api
-pnpm server:dev
-
-# 前端：http://localhost:5173
-pnpm admin:dev
+pnpm --filter server run db:migrate   # 执行迁移
+pnpm db:seed                          # 写入种子数据（幂等）
 ```
+
+种子默认创建：部门 `总公司`、角色 `admin`、用户 `admin / 123456`、全部菜单和权限。
+
+### 启动开发
+
+```bash
+pnpm server:dev    # 后端 http://localhost:3000
+pnpm admin:dev     # 前端 http://localhost:5173
+```
+
+Swagger 文档：`http://localhost:3000/api`
 
 ## 常用命令
 
 | 命令 | 说明 |
 | --- | --- |
-| `pnpm docker:dev` | 启动本地 PostgreSQL + MinIO |
+| `pnpm docker:dev` | 启动 PostgreSQL + Redis + MinIO |
 | `pnpm server:dev` | 启动后端（watch） |
 | `pnpm admin:dev` | 启动前端（vite） |
 | `pnpm db:seed` | 写入/同步种子数据（幂等） |
-| `pnpm --filter server run db:generate` | 根据 schema 生成迁移 |
+| `pnpm --filter server run db:generate` | 生成迁移 |
 | `pnpm --filter server run db:migrate` | 执行迁移 |
-| `pnpm --filter server run db:studio` | 打开 Drizzle Studio |
+| `pnpm --filter server run db:studio` | Drizzle Studio |
 | `pnpm --filter server run lint` | 后端 lint |
 | `pnpm --filter admin run build` | 前端构建 |
 
 ## 环境变量
 
-后端默认从环境变量读取（见 `apps/server/src/config/configuration.ts`）：
-
 | 变量 | 默认值 | 说明 |
 | --- | --- | --- |
 | `PORT` | `3000` | 后端端口 |
-| `DB_HOST` / `DB_PORT` / `DB_NAME` / `DB_USER` / `DB_PASSWORD` | `localhost` / `5432` / `nest_isle` / `postgres` / `postgres` | 数据库 |
+| `DB_HOST` | `localhost` | 数据库主机 |
+| `DB_PORT` | `5432` | 数据库端口 |
+| `DB_NAME` | `nest_isle` | 数据库名 |
+| `DB_USER` | `postgres` | 数据库用户 |
+| `DB_PASSWORD` | `postgres` | 数据库密码 |
 | `JWT_SECRET` | `nest-isle-secret` | JWT 密钥（生产必改） |
 | `JWT_EXPIRES_IN` | `7d` | accessToken 过期时间 |
-| `MINIO_ENDPOINT` / `MINIO_PORT` | `localhost` / `9000` | MinIO 服务 |
-| `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` | `minioadmin` / `minioadmin` | MinIO 凭证 |
+| `REDIS_HOST` | `localhost` | Redis 主机 |
+| `REDIS_PORT` | `6379` | Redis 端口 |
+| `REDIS_PASSWORD` | 空 | Redis 密码 |
+| `MINIO_ENDPOINT` | `localhost` | MinIO 地址 |
+| `MINIO_PORT` | `9000` | MinIO 端口 |
+| `MINIO_ACCESS_KEY` | `minioadmin` | MinIO Access Key |
+| `MINIO_SECRET_KEY` | `minioadmin` | MinIO Secret Key |
 | `MINIO_BUCKET` | `nest-isle` | 默认桶 |
-| `MINIO_PUBLIC_URL` | `http://localhost:9000` | 对外访问地址（用于拼接文件 URL） |
-| `MINIO_USE_SSL` | `false` | 是否启用 SSL |
+| `MINIO_PUBLIC_URL` | `http://localhost:9000` | 文件访问地址 |
 
 ## 项目规则
 
-详见 `.trae/rules/`：
-
-- **api-dev-checklist.md**：开发新接口要补 Swagger 文档；新功能涉及菜单/路由/权限要更新 seed；敏感操作要加操作日志
-- **database-migration-safety.md**：只能用 Drizzle 定义 schema，禁止手写 SQL；迁移必须向前兼容；禁止 DROP/RENAME；新字段必须 nullable；菜单/权限/插入数据要走 seed
-- **ui-design.md**：表格操作按钮使用 icon，hover 显示文字
-
-## API 文档
-
-后端启动后访问 `http://localhost:3000/api` 查看 Swagger。
-
-## License
-
-ISC
+- 新接口必须补 Swagger 文档
+- 新功能涉及菜单/路由/权限必须更新 seed
+- 敏感操作必须加操作日志
+- 只能用 Drizzle 定义 schema，禁止手写 SQL
+- 迁移必须向前兼容，禁止 DROP/RENAME/DELETE
+- 新字段必须 nullable
+- 数据插入必须走 seed，禁止手动写库
+- 表格操作按钮用 icon，hover 显示文字
