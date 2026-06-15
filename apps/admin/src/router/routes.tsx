@@ -26,6 +26,11 @@ const OperateLogPage = React.lazy(() => import('../pages/monitor/operate-log'));
 const LoginLogPage = React.lazy(() => import('../pages/monitor/login-log'));
 const JobPage = React.lazy(() => import('../pages/monitor/job'));
 const SessionPage = React.lazy(() => import('../pages/monitor/session'));
+const AiProviderPage = React.lazy(() => import('../pages/ai/provider'));
+const AiModelPage = React.lazy(() => import('../pages/ai/model'));
+const AiPlaygroundPage = React.lazy(() => import('../pages/ai/playground'));
+const AiPromptPage = React.lazy(() => import('../pages/ai/prompt'));
+const AiLogPage = React.lazy(() => import('../pages/ai/log'));
 const ProfilePage = React.lazy(() => import('../pages/profile'));
 const NotFoundPage = React.lazy(() => import('../pages/404'));
 
@@ -65,6 +70,16 @@ export const routeObjects: RouteObject[] = [
           { path: 'login-log', element: LazyLoad(LoginLogPage) },
           { path: 'job', element: LazyLoad(JobPage) },
           { path: 'session', element: LazyLoad(SessionPage) },
+        ],
+      },
+      {
+        path: 'ai',
+        children: [
+          { path: 'provider', element: LazyLoad(AiProviderPage) },
+          { path: 'model', element: LazyLoad(AiModelPage) },
+          { path: 'playground', element: LazyLoad(AiPlaygroundPage) },
+          { path: 'prompt', element: LazyLoad(AiPromptPage) },
+          { path: 'log', element: LazyLoad(AiLogPage) },
         ],
       },
       { path: '*', element: LazyLoad(NotFoundPage) },

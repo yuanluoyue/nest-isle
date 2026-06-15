@@ -1,0 +1,25 @@
+- [x] openai SDK 已安装到 apps/server
+- [x] 4 张数据库 Schema 文件已创建（sys-ai-provider、sys-ai-model、sys-ai-prompt、sys-ai-log）
+- [x] Schema 关系已添加到 relations.ts（Provider-Model 一对多、Provider-Log、Model-Log、User-Log）
+- [x] Schema 导出已添加到 schema/index.ts
+- [x] 迁移文件已生成
+- [x] Provider CRUD 接口可用（含测试连接端点）
+- [x] Model CRUD 接口可用（设置默认模型时取消同类型其他默认）
+- [x] Prompt CRUD 接口可用（含 findByCode 方法）
+- [x] AiService.chat() 可根据模型名查找 Provider 并调用
+- [x] Playground SSE 流式对话可用
+- [x] 调用日志自动记录（providerId、modelId、userId、tokens、duration、status）
+- [x] 调用日志查询接口可用（支持筛选）
+- [x] AiModule 已注册到 AppModule
+- [x] Seed 包含 AI 能力目录菜单 + 5 个子菜单 + 按钮权限
+- [x] 前端类型定义完整（AiProvider/AiModel/AiPrompt/AiLog 相关类型）
+- [x] 前端 API 封装完整（4 个 API 文件 + playground API）
+- [x] Provider 管理页面可用（表格 + CRUD + 测试连接）
+- [x] Model 管理页面可用（表格 + CRUD + Provider 关联下拉）
+- [x] Prompt 管理页面可用（表格 + CRUD + TextArea）
+- [x] Playground 页面可用（模型选择 + 对话 + SSE 流式显示）
+- [x] 调用日志页面可用（表格 + 筛选，只读）
+- [x] 前端路由已添加 AI 模块路由
+- [x] RobotOutlined 图标已注册到 SideMenu iconMap
+- [x] 后端 tsc --noEmit 编译通过
+- [x] 前端 tsc --noEmit 编译通过

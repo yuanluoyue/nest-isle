@@ -565,3 +565,190 @@ export interface QuerySessionParams {
   userType?: string;
   ip?: string;
 }
+
+// ============ AI Provider ============
+
+export interface AiProviderItem {
+  id: string;
+  name: string | null;
+  type: string | null;
+  baseUrl: string | null;
+  apiKey: string | null;
+  enabled: number | null;
+  priority: number | null;
+  remark: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+  deletedAt: string | null;
+}
+
+export interface AiProviderListResult {
+  list: AiProviderItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface CreateAiProviderParams {
+  name: string;
+  type: string;
+  baseUrl?: string;
+  apiKey?: string;
+  enabled?: number;
+  priority?: number;
+  remark?: string;
+}
+
+export interface UpdateAiProviderParams {
+  name?: string;
+  type?: string;
+  baseUrl?: string;
+  apiKey?: string;
+  enabled?: number;
+  priority?: number;
+  remark?: string;
+}
+
+export interface QueryAiProviderParams {
+  page?: number;
+  pageSize?: number;
+  name?: string;
+  type?: string;
+  enabled?: number;
+}
+
+// ============ AI Model ============
+
+export interface AiModelItem {
+  id: string;
+  providerId: string | null;
+  name: string | null;
+  displayName: string | null;
+  modelType: string | null;
+  enabled: number | null;
+  isDefault: number | null;
+  contextLength: number | null;
+  inputPrice: string | null;
+  outputPrice: string | null;
+  remark: string | null;
+  provider?: AiProviderItem;
+}
+
+export interface AiModelListResult {
+  list: AiModelItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface CreateAiModelParams {
+  providerId: string;
+  name: string;
+  displayName?: string;
+  modelType: string;
+  enabled?: number;
+  isDefault?: number;
+  contextLength?: number;
+  inputPrice?: string;
+  outputPrice?: string;
+  remark?: string;
+}
+
+export interface UpdateAiModelParams {
+  providerId?: string;
+  name?: string;
+  displayName?: string;
+  modelType?: string;
+  enabled?: number;
+  isDefault?: number;
+  contextLength?: number;
+  inputPrice?: string;
+  outputPrice?: string;
+  remark?: string;
+}
+
+export interface QueryAiModelParams {
+  page?: number;
+  pageSize?: number;
+  providerId?: string;
+  modelType?: string;
+  enabled?: number;
+}
+
+// ============ AI Prompt ============
+
+export interface AiPromptItem {
+  id: string;
+  code: string | null;
+  name: string | null;
+  content: string | null;
+  version: number | null;
+  enabled: number | null;
+  remark: string | null;
+}
+
+export interface AiPromptListResult {
+  list: AiPromptItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface CreateAiPromptParams {
+  code: string;
+  name: string;
+  content: string;
+  version?: number;
+  enabled?: number;
+  remark?: string;
+}
+
+export interface UpdateAiPromptParams {
+  code?: string;
+  name?: string;
+  content?: string;
+  version?: number;
+  enabled?: number;
+  remark?: string;
+}
+
+export interface QueryAiPromptParams {
+  page?: number;
+  pageSize?: number;
+  code?: string;
+  name?: string;
+  enabled?: number;
+}
+
+// ============ AI Log ============
+
+export interface AiLogItem {
+  id: string;
+  providerId: string | null;
+  modelId: string | null;
+  userId: string | null;
+  promptTokens: number | null;
+  completionTokens: number | null;
+  totalTokens: number | null;
+  duration: number | null;
+  status: number | null;
+  error: string | null;
+  createdAt: string | null;
+  provider?: AiProviderItem;
+  model?: AiModelItem;
+}
+
+export interface AiLogListResult {
+  list: AiLogItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface QueryAiLogParams {
+  page?: number;
+  pageSize?: number;
+  providerId?: string;
+  modelId?: string;
+  status?: number;
+}

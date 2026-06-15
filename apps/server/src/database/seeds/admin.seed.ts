@@ -591,6 +591,223 @@ async function seed() {
     }
   }
 
+  // AI 能力目录
+  let aiMenu = await db.query.sysMenu.findFirst({
+    where: eq(schema.sysMenu.name, 'AI 能力'),
+  });
+  if (!aiMenu) {
+    const [created] = await db
+      .insert(schema.sysMenu)
+      .values({
+        name: 'AI 能力',
+        type: 0,
+        path: '/ai',
+        icon: 'RobotOutlined',
+        sort: 3,
+        visible: 0,
+        status: 0,
+      })
+      .returning();
+    aiMenu = created;
+    console.log('Created menu: AI 能力');
+  }
+
+  // Provider 管理菜单
+  let aiProviderMenu = await db.query.sysMenu.findFirst({
+    where: eq(schema.sysMenu.name, 'Provider 管理'),
+  });
+  if (!aiProviderMenu) {
+    const [created] = await db
+      .insert(schema.sysMenu)
+      .values({
+        parentId: aiMenu.id,
+        name: 'Provider 管理',
+        type: 1,
+        path: '/ai/provider',
+        component: 'ai/provider',
+        permission: 'ai:provider:list',
+        icon: 'ApiOutlined',
+        sort: 1,
+        visible: 0,
+        status: 0,
+      })
+      .returning();
+    aiProviderMenu = created;
+    console.log('Created menu: Provider 管理');
+  }
+
+  // Provider 管理按钮权限
+  const aiProviderButtons = [
+    { name: 'Provider 新增', permission: 'ai:provider:create', sort: 1 },
+    { name: 'Provider 编辑', permission: 'ai:provider:update', sort: 2 },
+    { name: 'Provider 删除', permission: 'ai:provider:delete', sort: 3 },
+    { name: '测试连接', permission: 'ai:provider:test', sort: 4 },
+  ];
+
+  for (const btn of aiProviderButtons) {
+    const existing = await db.query.sysMenu.findFirst({
+      where: eq(schema.sysMenu.permission, btn.permission),
+    });
+    if (!existing) {
+      await db.insert(schema.sysMenu).values({
+        parentId: aiProviderMenu.id,
+        name: btn.name,
+        type: 2,
+        permission: btn.permission,
+        sort: btn.sort,
+        visible: 0,
+        status: 0,
+      });
+      console.log(`Created button: ${btn.name}`);
+    }
+  }
+
+  // Model 管理菜单
+  let aiModelMenu = await db.query.sysMenu.findFirst({
+    where: eq(schema.sysMenu.name, 'Model 管理'),
+  });
+  if (!aiModelMenu) {
+    const [created] = await db
+      .insert(schema.sysMenu)
+      .values({
+        parentId: aiMenu.id,
+        name: 'Model 管理',
+        type: 1,
+        path: '/ai/model',
+        component: 'ai/model',
+        permission: 'ai:model:list',
+        icon: 'ExperimentOutlined',
+        sort: 2,
+        visible: 0,
+        status: 0,
+      })
+      .returning();
+    aiModelMenu = created;
+    console.log('Created menu: Model 管理');
+  }
+
+  // Model 管理按钮权限
+  const aiModelButtons = [
+    { name: 'Model 新增', permission: 'ai:model:create', sort: 1 },
+    { name: 'Model 编辑', permission: 'ai:model:update', sort: 2 },
+    { name: 'Model 删除', permission: 'ai:model:delete', sort: 3 },
+  ];
+
+  for (const btn of aiModelButtons) {
+    const existing = await db.query.sysMenu.findFirst({
+      where: eq(schema.sysMenu.permission, btn.permission),
+    });
+    if (!existing) {
+      await db.insert(schema.sysMenu).values({
+        parentId: aiModelMenu.id,
+        name: btn.name,
+        type: 2,
+        permission: btn.permission,
+        sort: btn.sort,
+        visible: 0,
+        status: 0,
+      });
+      console.log(`Created button: ${btn.name}`);
+    }
+  }
+
+  // Playground 菜单
+  let aiPlaygroundMenu = await db.query.sysMenu.findFirst({
+    where: eq(schema.sysMenu.name, 'Playground'),
+  });
+  if (!aiPlaygroundMenu) {
+    const [created] = await db
+      .insert(schema.sysMenu)
+      .values({
+        parentId: aiMenu.id,
+        name: 'Playground',
+        type: 1,
+        path: '/ai/playground',
+        component: 'ai/playground',
+        permission: 'ai:playground:view',
+        icon: 'CodeOutlined',
+        sort: 3,
+        visible: 0,
+        status: 0,
+      })
+      .returning();
+    aiPlaygroundMenu = created;
+    console.log('Created menu: Playground');
+  }
+
+  // Prompt 管理菜单
+  let aiPromptMenu = await db.query.sysMenu.findFirst({
+    where: eq(schema.sysMenu.name, 'Prompt 管理'),
+  });
+  if (!aiPromptMenu) {
+    const [created] = await db
+      .insert(schema.sysMenu)
+      .values({
+        parentId: aiMenu.id,
+        name: 'Prompt 管理',
+        type: 1,
+        path: '/ai/prompt',
+        component: 'ai/prompt',
+        permission: 'ai:prompt:list',
+        icon: 'FormOutlined',
+        sort: 4,
+        visible: 0,
+        status: 0,
+      })
+      .returning();
+    aiPromptMenu = created;
+    console.log('Created menu: Prompt 管理');
+  }
+
+  // Prompt 管理按钮权限
+  const aiPromptButtons = [
+    { name: 'Prompt 新增', permission: 'ai:prompt:create', sort: 1 },
+    { name: 'Prompt 编辑', permission: 'ai:prompt:update', sort: 2 },
+    { name: 'Prompt 删除', permission: 'ai:prompt:delete', sort: 3 },
+  ];
+
+  for (const btn of aiPromptButtons) {
+    const existing = await db.query.sysMenu.findFirst({
+      where: eq(schema.sysMenu.permission, btn.permission),
+    });
+    if (!existing) {
+      await db.insert(schema.sysMenu).values({
+        parentId: aiPromptMenu.id,
+        name: btn.name,
+        type: 2,
+        permission: btn.permission,
+        sort: btn.sort,
+        visible: 0,
+        status: 0,
+      });
+      console.log(`Created button: ${btn.name}`);
+    }
+  }
+
+  // 调用日志菜单
+  let aiLogMenu = await db.query.sysMenu.findFirst({
+    where: eq(schema.sysMenu.name, '调用日志'),
+  });
+  if (!aiLogMenu) {
+    const [created] = await db
+      .insert(schema.sysMenu)
+      .values({
+        parentId: aiMenu.id,
+        name: '调用日志',
+        type: 1,
+        path: '/ai/log',
+        component: 'ai/log',
+        permission: 'ai:log:list',
+        icon: 'FileTextOutlined',
+        sort: 5,
+        visible: 0,
+        status: 0,
+      })
+      .returning();
+    aiLogMenu = created;
+    console.log('Created menu: 调用日志');
+  }
+
   // 给 admin 角色分配菜单权限（在所有菜单创建之后）
   const menus = await db.query.sysMenu.findMany();
   for (const menu of menus) {

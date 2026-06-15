@@ -50,6 +50,20 @@
       "when": 1781443435595,
       "tag": "0006_fine_human_fly",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1781484137009,
+      "tag": "0007_regular_zarek",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1781497528136,
+      "tag": "0008_fluffy_enchantress",
+      "breakpoints": true
     }
   ]
 }

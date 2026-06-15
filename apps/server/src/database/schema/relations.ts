@@ -8,6 +8,9 @@ import { sysRoleMenu } from './sys-role-menu.schema';
 import { sysJob } from './sys-job.schema';
 import { sysJobLog } from './sys-job-log.schema';
 import { sysSession } from './sys-session.schema';
+import { sysAiProvider } from './sys-ai-provider.schema';
+import { sysAiModel } from './sys-ai-model.schema';
+import { sysAiLog } from './sys-ai-log.schema';
 
 export const sysUserRelations = relations(sysUser, ({ many, one }) => ({
   userRoles: many(sysUserRole),
@@ -66,6 +69,34 @@ export const sysJobLogRelations = relations(sysJobLog, ({ one }) => ({
 export const sysSessionRelations = relations(sysSession, ({ one }) => ({
   user: one(sysUser, {
     fields: [sysSession.userId],
+    references: [sysUser.id],
+  }),
+}));
+
+export const sysAiProviderRelations = relations(sysAiProvider, ({ many }) => ({
+  models: many(sysAiModel),
+  logs: many(sysAiLog),
+}));
+
+export const sysAiModelRelations = relations(sysAiModel, ({ one, many }) => ({
+  provider: one(sysAiProvider, {
+    fields: [sysAiModel.providerId],
+    references: [sysAiProvider.id],
+  }),
+  logs: many(sysAiLog),
+}));
+
+export const sysAiLogRelations = relations(sysAiLog, ({ one }) => ({
+  provider: one(sysAiProvider, {
+    fields: [sysAiLog.providerId],
+    references: [sysAiProvider.id],
+  }),
+  model: one(sysAiModel, {
+    fields: [sysAiLog.modelId],
+    references: [sysAiModel.id],
+  }),
+  user: one(sysUser, {
+    fields: [sysAiLog.userId],
     references: [sysUser.id],
   }),
 }));

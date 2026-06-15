@@ -15,4 +15,8 @@ export * from './sys-job-log.schema';
 export * from './sys-file.schema';
 export * from './sys-notice.schema';
 export * from './sys-session.schema';
+export * from './sys-ai-provider.schema';
+export * from './sys-ai-model.schema';
+export * from './sys-ai-prompt.schema';
+export * from './sys-ai-log.schema';
 export * from './relations';

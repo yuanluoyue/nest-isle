@@ -41,7 +41,10 @@ import {
   NotificationOutlined,
   ScheduleOutlined,
   SettingFilled,
-  WifiOutlined
+  WifiOutlined,
+  RobotOutlined,
+  ExperimentOutlined,
+  CodeOutlined,
 } from '@ant-design/icons';
 import type { MenuItem } from '../../types/api';
 
@@ -87,11 +90,14 @@ const iconMap: Record<string, React.ReactNode> = {
   ScheduleOutlined: <ScheduleOutlined />,
   SettingFilled: <SettingFilled />,
   OnlineOutlined: <WifiOutlined />,
+  RobotOutlined: <RobotOutlined />,
+  ExperimentOutlined: <ExperimentOutlined />,
+  CodeOutlined: <CodeOutlined />,
 };
 
 export const getIcon = (iconName: string | null): React.ReactNode | undefined => {
   if (!iconName) return undefined;
-  return iconMap[iconName];
+  return iconMap[iconName] ?? undefined;
 };
 
 export const buildMenuItems = (menus: MenuItem[]): MenuProps['items'] => {
