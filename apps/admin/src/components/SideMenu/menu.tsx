@@ -45,6 +45,7 @@ import {
   RobotOutlined,
   ExperimentOutlined,
   CodeOutlined,
+  EditOutlined,
 } from '@ant-design/icons';
 import type { MenuItem } from '../../types/api';
 
@@ -93,6 +94,7 @@ const iconMap: Record<string, React.ReactNode> = {
   RobotOutlined: <RobotOutlined />,
   ExperimentOutlined: <ExperimentOutlined />,
   CodeOutlined: <CodeOutlined />,
+  EditOutlined: <EditOutlined />,
 };
 
 export const getIcon = (iconName: string | null): React.ReactNode | undefined => {

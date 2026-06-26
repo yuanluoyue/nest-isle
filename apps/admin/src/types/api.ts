@@ -752,3 +752,140 @@ export interface QueryAiLogParams {
   modelId?: string;
   status?: number;
 }
+
+// ============ 表单管理 ============
+
+export interface FormItem {
+  id: string;
+  name: string;
+  code: string;
+  description: string | null;
+  schema: Record<string, any> | null;
+  publishedSchema: Record<string, any> | null;
+  status: number | null; // 0=草稿 1=已发布 2=停用
+  createdBy: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FormListResult {
+  list: FormItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface CreateFormParams {
+  name: string;
+  code: string;
+  description?: string;
+  schema?: Record<string, any>;
+}
+
+export interface UpdateFormParams {
+  name?: string;
+  code?: string;
+  description?: string;
+  schema?: Record<string, any>;
+}
+
+export interface QueryFormParams {
+  page?: number;
+  pageSize?: number;
+  name?: string;
+  code?: string;
+  status?: number;
+}
+
+// ============ 表单数据 ============
+
+export interface FormRecordItem {
+  id: string;
+  formId: string;
+  data: Record<string, any> | null;
+  createdBy: string | null;
+  createdAt: string;
+}
+
+export interface FormRecordListResult {
+  list: FormRecordItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface CreateFormRecordParams {
+  formId: string;
+  data?: Record<string, any>;
+}
+
+export interface QueryFormRecordParams {
+  page?: number;
+  pageSize?: number;
+  formId?: string;
+}
+
+// ============ 数据源管理 ============
+
+export interface FormDatasourceItem {
+  id: string;
+  name: string | null;
+  code: string | null;
+  type: string | null; // dict/api/static
+  config: Record<string, any> | null;
+  createdAt: string | null;
+}
+
+export interface FormDatasourceListResult {
+  list: FormDatasourceItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface CreateFormDatasourceParams {
+  name: string;
+  code: string;
+  type?: string;
+  config?: Record<string, any>;
+}
+
+export interface UpdateFormDatasourceParams {
+  name?: string;
+  code?: string;
+  type?: string;
+  config?: Record<string, any>;
+}
+
+export interface QueryFormDatasourceParams {
+  page?: number;
+  pageSize?: number;
+  name?: string;
+  type?: string;
+}
+
+// ============ 表单版本 ============
+
+export interface FormVersionItem {
+  id: string;
+  formId: string;
+  version: number;
+  schema: Record<string, any>;
+  remark: string | null;
+  isPublished: number | null; // 0=否 1=是
+  createdBy: string | null;
+  createdAt: string;
+}
+
+export interface FormVersionListResult {
+  list: FormVersionItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface QueryFormVersionParams {
+  page?: number;
+  pageSize?: number;
+  formId?: string;
+}

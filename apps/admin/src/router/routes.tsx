@@ -31,6 +31,11 @@ const AiModelPage = React.lazy(() => import('../pages/ai/model'));
 const AiPlaygroundPage = React.lazy(() => import('../pages/ai/playground'));
 const AiPromptPage = React.lazy(() => import('../pages/ai/prompt'));
 const AiLogPage = React.lazy(() => import('../pages/ai/log'));
+const FormDesignPage = React.lazy(() => import('../pages/form/design'));
+const FormDesignerPage = React.lazy(() => import('../pages/form/design/designer'));
+const FormRecordPage = React.lazy(() => import('../pages/form/record'));
+const FormDatasourcePage = React.lazy(() => import('../pages/form/datasource'));
+const FormFillPage = React.lazy(() => import('../pages/form/fill'));
 const ProfilePage = React.lazy(() => import('../pages/profile'));
 const NotFoundPage = React.lazy(() => import('../pages/404'));
 
@@ -38,6 +43,26 @@ export const routeObjects: RouteObject[] = [
   {
     path: '/login',
     element: LazyLoad(LoginPage),
+  },
+  {
+    path: '/form/design/:id',
+    element: (
+      <AuthGuard>
+        <Suspense fallback={<PageLoading />}>
+          <FormDesignerPage />
+        </Suspense>
+      </AuthGuard>
+    ),
+  },
+  {
+    path: '/form/fill/:formId',
+    element: (
+      <AuthGuard>
+        <Suspense fallback={<PageLoading />}>
+          <FormFillPage />
+        </Suspense>
+      </AuthGuard>
+    ),
   },
   {
     path: '/',
@@ -80,6 +105,14 @@ export const routeObjects: RouteObject[] = [
           { path: 'playground', element: LazyLoad(AiPlaygroundPage) },
           { path: 'prompt', element: LazyLoad(AiPromptPage) },
           { path: 'log', element: LazyLoad(AiLogPage) },
+        ],
+      },
+      {
+        path: 'form',
+        children: [
+          { path: 'design', element: LazyLoad(FormDesignPage) },
+          { path: 'record', element: LazyLoad(FormRecordPage) },
+          { path: 'datasource', element: LazyLoad(FormDatasourcePage) },
         ],
       },
       { path: '*', element: LazyLoad(NotFoundPage) },

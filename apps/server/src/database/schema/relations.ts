@@ -11,6 +11,9 @@ import { sysSession } from './sys-session.schema';
 import { sysAiProvider } from './sys-ai-provider.schema';
 import { sysAiModel } from './sys-ai-model.schema';
 import { sysAiLog } from './sys-ai-log.schema';
+import { sysForm } from './sys-form.schema';
+import { sysFormRecord } from './sys-form.schema';
+import { sysFormVersion } from './sys-form.schema';
 
 export const sysUserRelations = relations(sysUser, ({ many, one }) => ({
   userRoles: many(sysUserRole),
@@ -98,5 +101,24 @@ export const sysAiLogRelations = relations(sysAiLog, ({ one }) => ({
   user: one(sysUser, {
     fields: [sysAiLog.userId],
     references: [sysUser.id],
+  }),
+}));
+
+export const sysFormRelations = relations(sysForm, ({ many }) => ({
+  records: many(sysFormRecord),
+  versions: many(sysFormVersion),
+}));
+
+export const sysFormRecordRelations = relations(sysFormRecord, ({ one }) => ({
+  form: one(sysForm, {
+    fields: [sysFormRecord.formId],
+    references: [sysForm.id],
+  }),
+}));
+
+export const sysFormVersionRelations = relations(sysFormVersion, ({ one }) => ({
+  form: one(sysForm, {
+    fields: [sysFormVersion.formId],
+    references: [sysForm.id],
   }),
 }));

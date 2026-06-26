@@ -14,6 +14,7 @@ import { MonitorModule } from './modules/monitor/monitor.module';
 import { FileModule } from './modules/file/file.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { AiModule } from './modules/ai/ai.module';
+import { FormFeatureModule } from './modules/form/form.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { AiModule } from './modules/ai/ai.module';
     FileModule,
     DashboardModule,
     AiModule,
+    FormFeatureModule,
   ],
 })
 export class AppModule {}

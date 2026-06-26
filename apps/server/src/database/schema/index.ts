@@ -19,4 +19,5 @@ export * from './sys-ai-provider.schema';
 export * from './sys-ai-model.schema';
 export * from './sys-ai-prompt.schema';
 export * from './sys-ai-log.schema';
+export * from './sys-form.schema';
 export * from './relations';

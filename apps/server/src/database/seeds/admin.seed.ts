@@ -808,6 +808,175 @@ async function seed() {
     console.log('Created menu: 调用日志');
   }
 
+  // 表单管理目录
+  let formMenu = await db.query.sysMenu.findFirst({
+    where: eq(schema.sysMenu.name, '表单管理'),
+  });
+  if (!formMenu) {
+    const [created] = await db
+      .insert(schema.sysMenu)
+      .values({
+        name: '表单管理',
+        type: 0,
+        path: '/form',
+        icon: 'FormOutlined',
+        sort: 4,
+        visible: 0,
+        status: 0,
+      })
+      .returning();
+    formMenu = created;
+    console.log('Created menu: 表单管理');
+  }
+
+  // 表单设计菜单（合并列表+设计+预览+发布）
+  let formDesignMenu = await db.query.sysMenu.findFirst({
+    where: eq(schema.sysMenu.name, '表单设计'),
+  });
+  if (!formDesignMenu) {
+    const [created] = await db
+      .insert(schema.sysMenu)
+      .values({
+        parentId: formMenu.id,
+        name: '表单设计',
+        type: 1,
+        path: '/form/design',
+        component: 'form/design',
+        permission: 'form:design:list',
+        icon: 'EditOutlined',
+        sort: 1,
+        visible: 0,
+        status: 0,
+      })
+      .returning();
+    formDesignMenu = created;
+    console.log('Created menu: 表单设计');
+  }
+
+  // 表单设计按钮权限
+  const formDesignButtons = [
+    { name: '表单新增', permission: 'form:design:create', sort: 1 },
+    { name: '表单编辑', permission: 'form:design:update', sort: 2 },
+    { name: '表单删除', permission: 'form:design:delete', sort: 3 },
+    { name: '表单发布', permission: 'form:design:publish', sort: 4 },
+    { name: '表单停用', permission: 'form:design:unpublish', sort: 5 },
+  ];
+
+  for (const btn of formDesignButtons) {
+    const existing = await db.query.sysMenu.findFirst({
+      where: eq(schema.sysMenu.permission, btn.permission),
+    });
+    if (!existing) {
+      await db.insert(schema.sysMenu).values({
+        parentId: formDesignMenu.id,
+        name: btn.name,
+        type: 2,
+        permission: btn.permission,
+        sort: btn.sort,
+        visible: 0,
+        status: 0,
+      });
+      console.log(`Created button: ${btn.name}`);
+    }
+  }
+
+  // 表单数据菜单
+  let formRecordMenu = await db.query.sysMenu.findFirst({
+    where: eq(schema.sysMenu.name, '表单数据'),
+  });
+  if (!formRecordMenu) {
+    const [created] = await db
+      .insert(schema.sysMenu)
+      .values({
+        parentId: formMenu.id,
+        name: '表单数据',
+        type: 1,
+        path: '/form/record',
+        component: 'form/record',
+        permission: 'form:record:list',
+        icon: 'TableOutlined',
+        sort: 2,
+        visible: 0,
+        status: 0,
+      })
+      .returning();
+    formRecordMenu = created;
+    console.log('Created menu: 表单数据');
+  }
+
+  // 表单数据按钮权限
+  const formRecordButtons = [
+    { name: '数据提交', permission: 'form:record:create', sort: 1 },
+    { name: '数据删除', permission: 'form:record:delete', sort: 2 },
+  ];
+
+  for (const btn of formRecordButtons) {
+    const existing = await db.query.sysMenu.findFirst({
+      where: eq(schema.sysMenu.permission, btn.permission),
+    });
+    if (!existing) {
+      await db.insert(schema.sysMenu).values({
+        parentId: formRecordMenu.id,
+        name: btn.name,
+        type: 2,
+        permission: btn.permission,
+        sort: btn.sort,
+        visible: 0,
+        status: 0,
+      });
+      console.log(`Created button: ${btn.name}`);
+    }
+  }
+
+  // 数据源管理菜单
+  let formDatasourceMenu = await db.query.sysMenu.findFirst({
+    where: eq(schema.sysMenu.name, '数据源管理'),
+  });
+  if (!formDatasourceMenu) {
+    const [created] = await db
+      .insert(schema.sysMenu)
+      .values({
+        parentId: formMenu.id,
+        name: '数据源管理',
+        type: 1,
+        path: '/form/datasource',
+        component: 'form/datasource',
+        permission: 'form:datasource:list',
+        icon: 'DatabaseOutlined',
+        sort: 3,
+        visible: 0,
+        status: 0,
+      })
+      .returning();
+    formDatasourceMenu = created;
+    console.log('Created menu: 数据源管理');
+  }
+
+  // 数据源管理按钮权限
+  const formDatasourceButtons = [
+    { name: '数据源新增', permission: 'form:datasource:create', sort: 1 },
+    { name: '数据源编辑', permission: 'form:datasource:update', sort: 2 },
+    { name: '数据源删除', permission: 'form:datasource:delete', sort: 3 },
+  ];
+
+  for (const btn of formDatasourceButtons) {
+    const existing = await db.query.sysMenu.findFirst({
+      where: eq(schema.sysMenu.permission, btn.permission),
+    });
+    if (!existing) {
+      await db.insert(schema.sysMenu).values({
+        parentId: formDatasourceMenu.id,
+        name: btn.name,
+        type: 2,
+        permission: btn.permission,
+        sort: btn.sort,
+        visible: 0,
+        status: 0,
+      });
+      console.log(`Created button: ${btn.name}`);
+    }
+  }
+
   // 给 admin 角色分配菜单权限（在所有菜单创建之后）
   const menus = await db.query.sysMenu.findMany();
   for (const menu of menus) {

@@ -64,6 +64,13 @@
       "when": 1781497528136,
       "tag": "0008_fluffy_enchantress",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1782390947811,
+      "tag": "0009_wealthy_dakota_north",
+      "breakpoints": true
     }
   ]
 }
