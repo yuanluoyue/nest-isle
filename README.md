@@ -1,12 +1,12 @@
 # Nest Isle
 
-基于 NestJS + React 的后台管理系统，pnpm monorepo 架构。
+基于 NestJS + React 的后台管理系统，pnpm monorepo 架构。内置 RBAC 权限、AI 能力（LLM 网关）、可视化表单设计器等模块。
 
 ## 技术栈
 
-**后端** — NestJS 11 + SWC · Drizzle ORM + PostgreSQL · Redis · MinIO · JWT Session 认证
+**后端** — NestJS 11 + SWC · Drizzle ORM + PostgreSQL 16 · Redis · MinIO · JWT 认证 · OpenAI SDK（LLM 网关）· Winston 日志 · Swagger
 
-**前端** — React 19 + Vite 6 · Ant Design 6 · Zustand 5 · React Router v7
+**前端** — React 19 + Vite 6 · Ant Design 6 · Zustand 5 · React Router v7 · form-render + fr-generator（表单设计器）
 
 **基础设施** — Docker Compose（PostgreSQL 16 + Redis + MinIO）
 
@@ -14,7 +14,7 @@
 
 | 模块 | 功能 |
 | --- | --- |
-| 认证 | 登录（验证码）、JWT 双 Token、无感刷新、登出 |
+| 认证 | 登录（图形验证码）、JWT 双 Token、无感刷新、登出 |
 | 会话管理 | Session 存 Redis、在线状态查询、强制下线 |
 | RBAC 权限 | 用户-角色-菜单、动态菜单、按钮级权限 |
 | 用户管理 | CRUD、重置密码、分配角色 |
@@ -28,6 +28,8 @@
 | 登录日志 | 记录 IP、UA、浏览器、OS |
 | 文件管理 | StorageAdapter 抽象 + MinIO 实现 |
 | 仪表盘 | 用户数、文件大小等统计 |
+| AI 能力 | LLM 供应商/模型管理、Prompt 模板、Playground 调试（SSE 流式）、调用日志 |
+| 表单引擎 | 可视化表单设计器、数据源管理、表单填写、数据预览、AI 生成 Schema |
 | 个人中心 | 查看/编辑信息、上传头像 |
 
 ## 认证流程
@@ -49,14 +51,18 @@ nest-isle/
 │   ├── admin/                  # React 前端
 │   │   └── src/
 │   │       ├── api/            # 接口封装
-│   │       ├── components/     # 公共组件
+│   │       ├── components/     # 公共组件（AuthGuard、SideMenu 等）
 │   │       ├── hooks/
 │   │       ├── layouts/        # AdminLayout
 │   │       ├── pages/          # 页面（按模块划分）
+│   │       │   ├── ai/         # AI 供应商/模型/Playground/Prompt/日志
+│   │       │   ├── form/       # 表单设计/填写/数据/数据源
+│   │       │   ├── system/     # 用户/角色/菜单/字典/通知/配置
+│   │       │   ├── monitor/    # 操作日志/登录日志/定时任务/会话
+│   │       │   └── ...
 │   │       ├── router/         # 路由（懒加载 + 认证守卫）
 │   │       ├── stores/         # Zustand
-│   │       ├── types/
-│   │       └── utils/          # Axios 封装、自动刷新 Token
+│   │       └── utils/          # Axios 封装、自动刷新 Token、数据源解析
 │   └── server/                 # NestJS 后端
 │       └── src/
 │           ├── common/         # 中间件、拦截器、过滤器、装饰器
@@ -69,12 +75,14 @@ nest-isle/
 │           │   └── storage/    # StorageAdapter 抽象 + MinIO 实现
 │           ├── database/       # Drizzle schema、migrations、seeds
 │           └── modules/        # 业务模块
+│               ├── ai/         # 供应商/模型/Prompt/Playground/日志
 │               ├── auth/       # 登录、验证码、个人信息
 │               ├── dashboard/
 │               ├── file/
+│               ├── form/       # 表单/数据源/记录/版本
 │               ├── health/
-│               ├── monitor/    # 操作日志、登录日志、定时任务、会话管理
-│               └── system/    # 用户、角色、菜单、字典、通知、配置
+│               ├── monitor/    # 操作日志/登录日志/定时任务/会话
+│               └── system/     # 用户/角色/菜单/字典/通知/配置
 ├── docker/
 │   └── docker-compose.dev.yml
 ├── data/                       # 持久化目录（gitignored）
@@ -85,8 +93,8 @@ nest-isle/
 
 ### 环境要求
 
-- Node.js ≥ 20
-- pnpm ≥ 10
+- Node.js >= 20
+- pnpm >= 10
 - Docker
 
 ### 安装
@@ -115,7 +123,7 @@ pnpm --filter server run db:migrate   # 执行迁移
 pnpm db:seed                          # 写入种子数据（幂等）
 ```
 
-种子默认创建：部门 `总公司`、角色 `admin`、用户 `admin / 123456`、全部菜单和权限。
+种子默认创建：部门 `总公司`、角色 `admin`、用户 `admin / 123456`、全部菜单和权限、表单 Schema 生成器 Prompt。
 
 ### 启动开发
 
@@ -124,7 +132,8 @@ pnpm server:dev    # 后端 http://localhost:3000
 pnpm admin:dev     # 前端 http://localhost:5173
 ```
 
-Swagger 文档：`http://localhost:3000/api`
+- API 基础路径：`http://localhost:3000/api/v1`
+- Swagger 文档：`http://localhost:3000/api-docs`
 
 ## 常用命令
 
@@ -134,13 +143,17 @@ Swagger 文档：`http://localhost:3000/api`
 | `pnpm server:dev` | 启动后端（watch） |
 | `pnpm admin:dev` | 启动前端（vite） |
 | `pnpm db:seed` | 写入/同步种子数据（幂等） |
-| `pnpm --filter server run db:generate` | 生成迁移 |
+| `pnpm --filter server run db:generate` | 生成迁移文件 |
 | `pnpm --filter server run db:migrate` | 执行迁移 |
 | `pnpm --filter server run db:studio` | Drizzle Studio |
 | `pnpm --filter server run lint` | 后端 lint |
+| `pnpm --filter server run test` | 后端测试 |
 | `pnpm --filter admin run build` | 前端构建 |
+| `pnpm --filter admin run lint` | 前端 lint |
 
 ## 环境变量
+
+配置文件位于 `apps/server/.env`（`.env.local` 优先级更高）。
 
 | 变量 | 默认值 | 说明 |
 | --- | --- | --- |
@@ -155,20 +168,34 @@ Swagger 文档：`http://localhost:3000/api`
 | `REDIS_HOST` | `localhost` | Redis 主机 |
 | `REDIS_PORT` | `6379` | Redis 端口 |
 | `REDIS_PASSWORD` | 空 | Redis 密码 |
+| `REDIS_DB` | `0` | Redis 数据库索引 |
 | `MINIO_ENDPOINT` | `localhost` | MinIO 地址 |
 | `MINIO_PORT` | `9000` | MinIO 端口 |
 | `MINIO_ACCESS_KEY` | `minioadmin` | MinIO Access Key |
 | `MINIO_SECRET_KEY` | `minioadmin` | MinIO Secret Key |
+| `MINIO_USE_SSL` | `false` | MinIO 是否启用 SSL |
 | `MINIO_BUCKET` | `nest-isle` | 默认桶 |
 | `MINIO_PUBLIC_URL` | `http://localhost:9000` | 文件访问地址 |
 
-## 项目规则
+## AI 模块
 
-- 新接口必须补 Swagger 文档
-- 新功能涉及菜单/路由/权限必须更新 seed
-- 敏感操作必须加操作日志
-- 只能用 Drizzle 定义 schema，禁止手写 SQL
-- 迁移必须向前兼容，禁止 DROP/RENAME/DELETE
-- 新字段必须 nullable
-- 数据插入必须走 seed，禁止手动写库
-- 表格操作按钮用 icon，hover 显示文字
+基于 OpenAI SDK 统一接入各类 LLM 供应商（OpenAI / DeepSeek / Anthropic / Gemini），通过 OpenAI 兼容协议调用。
+
+- **供应商管理**：配置 API Key、BaseURL、类型
+- **模型管理**：关联供应商，设置模型名、上下文长度、价格、默认模型
+- **Prompt 模板**：按 code 存取，版本管理，启用/禁用
+- **Playground**：SSE 流式对话调试
+- **调用日志**：自动记录 token 用量、耗时、状态
+
+业务侧通过 `AiService.chat(modelName, messages, userId)` 调用，自动写入调用日志。
+
+## 表单引擎
+
+基于 form-render + fr-generator 实现的可视化表单系统。
+
+- **表单设计器**：拖拽式可视化设计，支持自定义组件面板、AI 生成 Schema
+- **数据源管理**：支持字典 / API / 静态数据三种类型，表单组件可绑定数据源自动加载选项
+- **表单填写**：根据已发布 Schema 渲染表单，提交数据到记录表
+- **数据预览**：以只读模式渲染表单组件 + 已填数据
+- **版本管理**：发布表单时生成版本快照
+
