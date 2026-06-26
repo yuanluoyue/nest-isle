@@ -1,9 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useCallback } from 'react';
 import {
   Table,
   Card,
   Button,
-  Input,
   Space,
   message,
   Popconfirm,
@@ -11,13 +11,16 @@ import {
   Col,
   Tooltip,
   Select,
+  Drawer,
+  Descriptions,
 } from 'antd';
-import { ReloadOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import { ReloadOutlined, DeleteOutlined, EyeOutlined, DesktopOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import type { FormRecordItem, QueryFormRecordParams, FormItem } from '../../../types/api';
 import { getFormRecordList, deleteFormRecord } from '../../../api/form-record';
-import { getFormList } from '../../../api/form';
-import { Drawer, Descriptions } from 'antd';
+import { getFormList, getFormDetail } from '../../../api/form';
+import { resolveSchemaDatasources } from '../../../utils/datasource';
+import FormRender, { useForm } from 'form-render';
 
 const FormRecordPage = () => {
   const [data, setData] = useState<FormRecordItem[]>([]);
@@ -31,6 +34,24 @@ const FormRecordPage = () => {
   // 详情抽屉
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailRecord, setDetailRecord] = useState<FormRecordItem | null>(null);
+
+  // 预览抽屉
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewSchema, setPreviewSchema] = useState<any>(null);
+  const [previewData, setPreviewData] = useState<any>(null);
+  const [previewTitle, setPreviewTitle] = useState('');
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const previewForm = useForm();
+
+  // 当 schema 加载完成后设置表单数据
+  useEffect(() => {
+    if (previewSchema && previewData && previewOpen) {
+      // 延迟设置，确保 FormRender 已渲染
+      setTimeout(() => {
+        previewForm.setValues(previewData);
+      }, 100);
+    }
+  }, [previewSchema, previewOpen]);
 
   const fetchForms = useCallback(async () => {
     try {
@@ -77,6 +98,29 @@ const FormRecordPage = () => {
     setDetailOpen(true);
   };
 
+  const handlePreview = async (record: FormRecordItem) => {
+    setPreviewLoading(true);
+    setPreviewOpen(true);
+    setPreviewTitle('表单数据预览');
+    try {
+      const detail = await getFormDetail(record.formId);
+      let schema = detail.publishedSchema || detail.schema;
+      if (!schema || !schema.properties || Object.keys(schema.properties).length === 0) {
+        message.warning('表单Schema为空');
+        setPreviewLoading(false);
+        return;
+      }
+      // 解析数据源配置
+      schema = await resolveSchemaDatasources(schema);
+      setPreviewSchema(schema);
+      setPreviewData(record.data || {});
+    } catch {
+      message.error('加载表单失败');
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
   const columns: ColumnsType<FormRecordItem> = [
     {
       title: '表单',
@@ -102,10 +146,13 @@ const FormRecordPage = () => {
     },
     {
       title: '操作',
-      width: 100,
+      width: 120,
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
+          <Tooltip title="预览">
+            <Button type="link" size="small" icon={<DesktopOutlined />} onClick={() => handlePreview(record)} />
+          </Tooltip>
           <Tooltip title="详情">
             <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => handleDetail(record)} />
           </Tooltip>
@@ -187,6 +234,27 @@ const FormRecordPage = () => {
               </pre>
             </Descriptions.Item>
           </Descriptions>
+        )}
+      </Drawer>
+
+      {/* 预览抽屉 - 表单+数据一起渲染 */}
+      <Drawer
+        title={previewTitle}
+        open={previewOpen}
+        onClose={() => {
+          setPreviewOpen(false);
+          setPreviewSchema(null);
+          setPreviewData(null);
+        }}
+        width={700}
+        destroyOnClose
+      >
+        {previewLoading ? (
+          <div style={{ textAlign: 'center', padding: 40 }}>加载中...</div>
+        ) : previewSchema ? (
+          <FormRender form={previewForm} schema={previewSchema} readOnly />
+        ) : (
+          <div style={{ textAlign: 'center', padding: 40, color: '#999' }}>无表单数据</div>
         )}
       </Drawer>
     </div>

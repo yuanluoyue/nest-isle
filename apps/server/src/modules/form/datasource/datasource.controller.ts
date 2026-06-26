@@ -30,10 +30,22 @@ export class DatasourceController {
     return this.datasourceService.findAll(query);
   }
 
+  @Get('code/:code/data')
+  @ApiOperation({ summary: '根据编码获取数据源数据' })
+  getDataByCode(@Param('code') code: string) {
+    return this.datasourceService.getDataByCode(code);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: '获取数据源详情' })
   findOne(@Param('id') id: string) {
     return this.datasourceService.findOne(id);
+  }
+
+  @Get(':id/data')
+  @ApiOperation({ summary: '获取数据源数据' })
+  getData(@Param('id') id: string) {
+    return this.datasourceService.getData(id);
   }
 
   @Post()

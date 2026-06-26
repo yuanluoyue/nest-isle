@@ -1,0 +1,24 @@
+diff --git a/src/components/Settings/ItemSettings.jsx b/src/components/Settings/ItemSettings.jsx
+index c12afabc7f384d45eab233bc2478e4e1c98adc3e..a1602709d68f6c0db6c0978b8f35e3b1dae3f295 100644
+--- a/src/components/Settings/ItemSettings.jsx
++++ b/src/components/Settings/ItemSettings.jsx
+@@ -68,9 +68,18 @@ export default function ItemSettings({ widgets }) {
+   const onDataChange = (value = {}) => {
+     try {
+       if (selected === '#' || !isReady.current || !value.$id) return;
++      const newSchema = transformer.fromSetting(value);
++      // 保留旧 schema 中新 schema 没有的自定义字段（如 datasourceCode）
++      const oldSchema = flatten[selected]?.schema || {};
++      const preservedFields = {};
++      Object.keys(oldSchema).forEach(key => {
++        if (!(key in newSchema) && key !== 'enumList') {
++          preservedFields[key] = oldSchema[key];
++        }
++      });
+       const item = {
+         ...flatten[selected],
+-        schema: transformer.fromSetting(value),
++        schema: { ...preservedFields, ...newSchema },
+       };
+       onItemChange(selected, item, 'schema');
+     } catch (error) {

@@ -45,26 +45,6 @@ export const routeObjects: RouteObject[] = [
     element: LazyLoad(LoginPage),
   },
   {
-    path: '/form/design/:id',
-    element: (
-      <AuthGuard>
-        <Suspense fallback={<PageLoading />}>
-          <FormDesignerPage />
-        </Suspense>
-      </AuthGuard>
-    ),
-  },
-  {
-    path: '/form/fill/:formId',
-    element: (
-      <AuthGuard>
-        <Suspense fallback={<PageLoading />}>
-          <FormFillPage />
-        </Suspense>
-      </AuthGuard>
-    ),
-  },
-  {
     path: '/',
     element: (
       <AuthGuard>
@@ -111,6 +91,8 @@ export const routeObjects: RouteObject[] = [
         path: 'form',
         children: [
           { path: 'design', element: LazyLoad(FormDesignPage) },
+          { path: 'design/:id', element: LazyLoad(FormDesignerPage) },
+          { path: 'fill/:formId', element: LazyLoad(FormFillPage) },
           { path: 'record', element: LazyLoad(FormRecordPage) },
           { path: 'datasource', element: LazyLoad(FormDatasourcePage) },
         ],

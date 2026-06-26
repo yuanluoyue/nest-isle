@@ -21,3 +21,9 @@ export const updateFormDatasource = (id: string, data: UpdateFormDatasourceParam
 
 export const deleteFormDatasource = (id: string) =>
   request.delete<any, void>(`/form/datasource/${id}`);
+
+export const getDatasourceData = (id: string) =>
+  request.get<any, { label: string; value: string }[]>(`/form/datasource/${id}/data`);
+
+export const getDatasourceDataByCode = (code: string) =>
+  request.get<any, { label: string; value: string }[]>(`/form/datasource/code/${code}/data`);

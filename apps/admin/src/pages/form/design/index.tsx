@@ -40,6 +40,7 @@ import {
   getFormDetail,
 } from '../../../api/form';
 import FormRender, { useForm } from 'form-render';
+import { resolveSchemaDatasources } from '../../../utils/datasource';
 
 const statusMap: Record<number, { color: string; text: string }> = {
   0: { color: 'orange', text: '草稿' },
@@ -164,11 +165,13 @@ const FormDesignPage = () => {
   const handlePreview = async (record: FormItem) => {
     try {
       const detail = await getFormDetail(record.id);
-      const schema = detail.publishedSchema || detail.schema;
+      let schema = detail.publishedSchema || detail.schema;
       if (!schema) {
         message.warning('表单Schema为空，无法预览');
         return;
       }
+      // 解析数据源配置
+      schema = await resolveSchemaDatasources(schema);
       setPreviewSchema(schema);
       setPreviewTitle(`预览: ${record.name}`);
       setPreviewOpen(true);
@@ -202,8 +205,8 @@ const FormDesignPage = () => {
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
-          <Tooltip title="填写">
-            <Button type="link" size="small" icon={<FileTextOutlined />} onClick={() => navigate(`/form/fill/${record.id}`)} />
+          <Tooltip title={record.status === 2 ? '已停用，无法填写' : '填写'}>
+            <Button type="link" size="small" icon={<FileTextOutlined />} disabled={record.status === 2} onClick={() => navigate(`/form/fill/${record.id}`)} />
           </Tooltip>
           <Tooltip title="设计">
             <Button type="link" size="small" icon={<FormOutlined />} onClick={() => navigate(`/form/design/${record.id}`)} />
@@ -214,7 +217,7 @@ const FormDesignPage = () => {
           <Tooltip title="预览">
             <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => handlePreview(record)} />
           </Tooltip>
-          {record.status === 0 && (
+          {record.status !== 1 && (
             <Tooltip title="发布">
               <Button type="link" size="small" icon={<SendOutlined />} onClick={() => handlePublish(record.id)} />
             </Tooltip>

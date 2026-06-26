@@ -6,3 +6,5 @@ onlyBuiltDependencies:
   - '@swc/core'
   - core-js
   - unrs-resolver
+patchedDependencies:
+  fr-generator@2.8.9: patches/fr-generator@2.8.9.patch

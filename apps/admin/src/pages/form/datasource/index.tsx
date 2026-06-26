@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useCallback } from 'react';
 import {
   Table,
@@ -13,8 +14,9 @@ import {
   Row,
   Col,
   Tooltip,
+  Alert,
 } from 'antd';
-import { PlusOutlined, ReloadOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined, ReloadOutlined, EditOutlined, DeleteOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import type {
   FormDatasourceItem,
@@ -27,6 +29,7 @@ import {
   createFormDatasource,
   updateFormDatasource,
   deleteFormDatasource,
+  getDatasourceData,
 } from '../../../api/form-datasource';
 
 const typeOptions = [
@@ -34,6 +37,12 @@ const typeOptions = [
   { label: 'API', value: 'api' },
   { label: '静态数据', value: 'static' },
 ];
+
+const typeConfigHint: Record<string, string> = {
+  dict: '字典类型：配置中填写 {"dictCode": "字典编码"}，例如 {"dictCode": "gender"}',
+  api: 'API类型：配置中填写 {"url": "接口地址", "method": "GET", "labelField": "label", "valueField": "value"}',
+  static: '静态类型：配置中填写 {"options": [{"label": "选项1", "value": "1"}, {"label": "选项2", "value": "2"}]}',
+};
 
 const FormDatasourcePage = () => {
   const [data, setData] = useState<FormDatasourceItem[]>([]);
@@ -46,6 +55,11 @@ const FormDatasourcePage = () => {
   const [editRecord, setEditRecord] = useState<FormDatasourceItem | null>(null);
   const [modalLoading, setModalLoading] = useState(false);
   const [form] = Form.useForm();
+  const [currentType, setCurrentType] = useState('dict');
+
+  // 测试结果
+  const [testResult, setTestResult] = useState<any[] | null>(null);
+  const [testLoading, setTestLoading] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -75,18 +89,21 @@ const FormDatasourcePage = () => {
   const handleAdd = () => {
     setEditRecord(null);
     form.resetFields();
+    setCurrentType('dict');
+    setTestResult(null);
     setModalOpen(true);
   };
 
   const handleEdit = (record: FormDatasourceItem) => {
     setEditRecord(record);
+    setCurrentType(record.type || 'dict');
+    setTestResult(null);
     setModalOpen(true);
   };
 
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
-      // 将 configStr 解析为对象
       const submitData = { ...values };
       if (submitData.configStr) {
         try {
@@ -127,6 +144,33 @@ const FormDatasourcePage = () => {
     }
   };
 
+  const handleTest = async (record: FormDatasourceItem) => {
+    setTestLoading(true);
+    try {
+      const result = await getDatasourceData(record.id);
+      if (result.length === 0) {
+        message.info('数据源返回为空，请检查配置');
+      } else {
+        message.success(`获取到 ${result.length} 条数据`);
+      }
+      Modal.info({
+        title: `数据源测试 - ${record.name}`,
+        width: 500,
+        content: (
+          <div style={{ marginTop: 12 }}>
+            <pre style={{ background: '#f5f5f5', padding: 12, borderRadius: 4, maxHeight: 400, overflow: 'auto', fontSize: 12 }}>
+              {JSON.stringify(result, null, 2)}
+            </pre>
+          </div>
+        ),
+      });
+    } catch {
+      message.error('获取数据源数据失败');
+    } finally {
+      setTestLoading(false);
+    }
+  };
+
   const columns: ColumnsType<FormDatasourceItem> = [
     { title: '名称', dataIndex: 'name', width: 150 },
     { title: '编码', dataIndex: 'code', width: 150 },
@@ -154,10 +198,13 @@ const FormDatasourcePage = () => {
     },
     {
       title: '操作',
-      width: 100,
+      width: 140,
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
+          <Tooltip title="测试">
+            <Button type="link" size="small" icon={<ThunderboltOutlined />} loading={testLoading} onClick={() => handleTest(record)} />
+          </Tooltip>
           <Tooltip title="编辑">
             <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} />
           </Tooltip>
@@ -248,6 +295,7 @@ const FormDatasourcePage = () => {
               ...editRecord,
               configStr: editRecord.config ? JSON.stringify(editRecord.config, null, 2) : '',
             });
+            setCurrentType(editRecord.type || 'dict');
           }
         }}
       >
@@ -256,11 +304,23 @@ const FormDatasourcePage = () => {
             <Input placeholder="请输入名称" />
           </Form.Item>
           <Form.Item name="code" label="编码" rules={[{ required: true, message: '请输入编码' }]}>
-            <Input disabled={!!editRecord} placeholder="请输入编码" />
+            <Input disabled={!!editRecord} placeholder="请输入编码（创建后不可修改）" />
           </Form.Item>
           <Form.Item name="type" label="类型" initialValue="dict">
-            <Select options={typeOptions} />
+            <Select
+              options={typeOptions}
+              onChange={(v) => setCurrentType(v)}
+            />
           </Form.Item>
+          {currentType && (
+            <Alert
+              message="配置说明"
+              description={typeConfigHint[currentType]}
+              type="info"
+              showIcon
+              style={{ marginBottom: 16 }}
+            />
+          )}
           <Form.Item name="configStr" label="配置（JSON）">
             <Input.TextArea rows={4} placeholder='{"key": "value"}' />
           </Form.Item>
