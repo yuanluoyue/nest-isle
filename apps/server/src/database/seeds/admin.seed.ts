@@ -977,6 +977,84 @@ async function seed() {
     }
   }
 
+  // ============ AI Prompt 数据 ============
+  const aiPrompts = [
+    {
+      code: 'form_schema_generator',
+      name: '表单 Schema 生成器',
+      content: `你是一个表单设计专家，擅长根据用户需求生成 form-render 格式的 JSON Schema。
+
+请根据用户的需求描述，生成一个符合 form-render 规范的表单 Schema。
+
+Schema 格式要求：
+1. 根节点必须是 { "type": "object", "properties": {...} }
+2. 每个字段需要包含 type、title 属性
+3. 字符串类型字段可加 placeholder 属性作为占位提示
+4. 数字类型字段 type 为 "number"
+5. 布尔类型字段 type 为 "boolean"
+6. 选择类字段（单选/多选）使用 enum 和 enumNames 属性
+   - enum: 选项值数组
+   - enumNames: 选项标签数组
+7. 日期字段格式为 { "type": "string", "format": "date" }
+8. 多行文本使用 { "type": "string", "format": "textarea" }
+9. 如需必填，添加 required 数组到根节点，包含必填字段的 key
+
+示例 Schema：
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "title": "姓名",
+      "type": "string",
+      "placeholder": "请输入姓名"
+    },
+    "gender": {
+      "title": "性别",
+      "type": "string",
+      "enum": ["male", "female"],
+      "enumNames": ["男", "女"]
+    },
+    "age": {
+      "title": "年龄",
+      "type": "number",
+      "placeholder": "请输入年龄"
+    },
+    "birthday": {
+      "title": "出生日期",
+      "type": "string",
+      "format": "date"
+    },
+    "remark": {
+      "title": "备注",
+      "type": "string",
+      "format": "textarea",
+      "placeholder": "请输入备注"
+    }
+  },
+  "required": ["name", "gender"]
+}
+
+注意：
+- 只返回 JSON，不要加任何解释文字
+- 字段的 key 用英文小写驼峰命名
+- 标题用中文
+- 根据用户需求合理设置字段类型和验证规则`,
+      version: 1,
+      enabled: 0,
+      remark: '用于表单设计器 AI 生成功能，根据需求描述生成 form-render Schema',
+    },
+  ];
+
+  for (const p of aiPrompts) {
+    const existing = await db.query.sysAiPrompt.findFirst({
+      where: eq(schema.sysAiPrompt.code, p.code),
+    });
+    if (!existing) {
+      await db.insert(schema.sysAiPrompt).values(p);
+      console.log(`Created ai prompt: ${p.code}`);
+    }
+  }
+
   // 给 admin 角色分配菜单权限（在所有菜单创建之后）
   const menus = await db.query.sysMenu.findMany();
   for (const menu of menus) {

@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Button, Space, Spin, message } from 'antd';
-import { ArrowLeftOutlined, SaveOutlined } from '@ant-design/icons';
+import { Button, Space, Spin, message, Modal, Input, Select } from 'antd';
+import { ArrowLeftOutlined, SaveOutlined, RobotOutlined } from '@ant-design/icons';
 import Generator, { defaultSettings } from 'fr-generator';
-import { getFormDetail, updateForm } from '../../../api/form';
+import { getFormDetail, updateForm, aiGenerateSchema } from '../../../api/form';
+import { getModelList } from '../../../api/ai-model';
+import type { AiModelItem } from '../../../types/api';
 
 // 自定义基础组件 - 添加单行文本组件，给组件加默认 placeholder
 const customSettings = defaultSettings.map((group: any) => {
@@ -77,6 +79,26 @@ const FormDesignerPage = () => {
   const genRef = useRef<any>(null);
   const loadedRef = useRef(false);
 
+  // AI 生成
+  const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [aiRequirement, setAiRequirement] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiModelId, setAiModelId] = useState<string | undefined>(undefined);
+  const [modelOptions, setModelOptions] = useState<AiModelItem[]>([]);
+
+  // 加载模型列表
+  const loadModels = async () => {
+    try {
+      const res = await getModelList({ page: 1, pageSize: 100, enabled: 0 });
+      setModelOptions(res.list);
+      // 默认选第一个或默认模型
+      const defaultModel = res.list.find((m) => m.isDefault === 1);
+      setAiModelId(defaultModel?.id || res.list[0]?.id);
+    } catch {
+      // ignore
+    }
+  };
+
   useEffect(() => {
     if (id) {
       loadForm();
@@ -113,6 +135,37 @@ const FormDesignerPage = () => {
       message.error('保存失败: ' + (e?.message || '未知错误'));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleAiGenerate = async () => {
+    if (!aiRequirement.trim()) {
+      message.warning('请输入需求描述');
+      return;
+    }
+    setAiLoading(true);
+    try {
+      const res = await aiGenerateSchema(aiRequirement, aiModelId);
+      if (res.error) {
+        message.error(res.error);
+        return;
+      }
+      if (res.schema) {
+        // 应用生成的 schema 到设计器
+        setSchema(res.schema);
+        if (genRef.current) {
+          genRef.current.setValue(res.schema);
+        }
+        message.success('AI 生成成功');
+        setAiModalOpen(false);
+        setAiRequirement('');
+      } else {
+        message.warning('AI 未生成有效的 Schema');
+      }
+    } catch (e: any) {
+      message.error('AI 生成失败: ' + (e?.message || '未知错误'));
+    } finally {
+      setAiLoading(false);
     }
   };
 
@@ -155,9 +208,14 @@ const FormDesignerPage = () => {
           </Button>
           <span style={{ fontWeight: 500, fontSize: 16 }}>{formName}</span>
         </Space>
-        <Button type="primary" icon={<SaveOutlined />} loading={saving} onClick={handleSave}>
-          保存
-        </Button>
+        <Space>
+          <Button icon={<RobotOutlined />} onClick={() => { loadModels(); setAiModalOpen(true); }}>
+            AI 生成
+          </Button>
+          <Button type="primary" icon={<SaveOutlined />} loading={saving} onClick={handleSave}>
+            保存
+          </Button>
+        </Space>
       </div>
 
       {/* 设计器主体 */}
@@ -176,6 +234,53 @@ const FormDesignerPage = () => {
           }}
         />
       </div>
+
+      {/* AI 生成弹窗 */}
+      <Modal
+        title="AI 生成表单"
+        open={aiModalOpen}
+        onCancel={() => {
+          setAiModalOpen(false);
+          setAiRequirement('');
+        }}
+        onOk={handleAiGenerate}
+        confirmLoading={aiLoading}
+        okText="生成"
+        cancelText="取消"
+        width={600}
+        destroyOnClose
+      >
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ marginBottom: 6, fontWeight: 500 }}>选择模型</div>
+          <Select
+            style={{ width: '100%' }}
+            placeholder="请选择 AI 模型"
+            value={aiModelId}
+            onChange={(v) => setAiModelId(v)}
+            disabled={aiLoading}
+            options={modelOptions.map((m) => ({
+              label: m.displayName ? `${m.displayName} (${m.name})` : m.name,
+              value: m.id,
+            }))}
+            showSearch
+            filterOption={(input, option) =>
+              (option?.label as string)?.toLowerCase().includes(input.toLowerCase())
+            }
+          />
+        </div>
+        <div style={{ marginBottom: 8, color: '#666', fontSize: 13 }}>
+          描述你需要的表单，AI 将自动生成表单 Schema。例如："创建一个员工信息采集表，包含姓名、性别、年龄、部门、入职日期、联系电话"
+        </div>
+        <Input.TextArea
+          rows={6}
+          placeholder="请输入表单需求描述..."
+          value={aiRequirement}
+          onChange={(e) => setAiRequirement(e.target.value)}
+          maxLength={1000}
+          showCount
+          disabled={aiLoading}
+        />
+      </Modal>
     </div>
   );
 };

@@ -30,3 +30,6 @@ export const unpublishForm = (id: string) =>
 
 export const getPublishedSchema = (code: string) =>
   request.get<any, { schema: Record<string, any> }>(`/form/form/published/${code}`);
+
+export const aiGenerateSchema = (requirement: string, modelId?: string) =>
+  request.post<any, { schema: any; rawContent?: string; error?: string }>('/form/form/ai-generate', { requirement, modelId });
