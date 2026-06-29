@@ -6,7 +6,7 @@ import { hashSync } from 'bcryptjs';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
-// 加载 .env 文件
+// 加载 server 目录下的 .env
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 const APP_NAME = process.env.APP_NAME ?? 'nest-isle';

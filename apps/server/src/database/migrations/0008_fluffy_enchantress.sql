@@ -1,1 +1,0 @@
-ALTER TABLE "sys_ai_provider" ADD COLUMN "deleted_at" timestamp;
