@@ -4,6 +4,7 @@ import { UserOutlined, LockOutlined, SafetyOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { login, getCaptcha } from '../../api/auth';
 import { useAuthStore, saveRememberPassword, getRememberPassword, clearRememberPassword } from '../../stores/auth';
+import { useLocalAccountStore } from '../../stores/local-accounts';
 
 const LoginPage = () => {
   const [form] = Form.useForm();
@@ -12,6 +13,7 @@ const LoginPage = () => {
   const [captchaId, setCaptchaId] = useState('');
   const navigate = useNavigate();
   const { setTokens, setUser, accessToken } = useAuthStore();
+  const { addAccount, updateAccount, findByUsername } = useLocalAccountStore();
 
   useEffect(() => {
     if (accessToken) {
@@ -46,6 +48,14 @@ const LoginPage = () => {
       });
       setTokens(result.accessToken, result.refreshToken);
       setUser(result.user);
+
+      // 自动保存到本地账号管理
+      const existing = findByUsername(values.username);
+      if (existing) {
+        updateAccount(existing.id, { password: values.password });
+      } else {
+        addAccount({ username: values.username, password: values.password });
+      }
 
       if (values.remember) {
         saveRememberPassword(values.username, values.password);

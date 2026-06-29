@@ -5,6 +5,7 @@ import {
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  SwapOutlined,
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/auth';
@@ -12,6 +13,7 @@ import { useMenuStore } from '../stores/menu';
 import { useProfile } from '../hooks/useProfile';
 import { logout as logoutApi } from '../api/auth';
 import SideMenu from '../components/SideMenu';
+import AccountSwitcher from '../components/AccountSwitcher';
 import type { MenuItem } from '../types/api';
 
 const { Header, Content } = Layout;
@@ -45,6 +47,7 @@ function buildBreadcrumbItems(menus: MenuItem[], pathname: string) {
 
 const AdminLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const [accountSwitcherOpen, setAccountSwitcherOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { token: themeToken } = theme.useToken();
@@ -74,6 +77,12 @@ const AdminLayout = () => {
       icon: <UserOutlined />,
       label: '个人信息',
       onClick: () => navigate('/profile'),
+    },
+    {
+      key: 'switch-account',
+      icon: <SwapOutlined />,
+      label: '切换账号',
+      onClick: () => setAccountSwitcherOpen(true),
     },
     { type: 'divider' as const },
     {
@@ -134,6 +143,7 @@ const AdminLayout = () => {
           <Outlet />
         </Content>
       </Layout>
+      <AccountSwitcher open={accountSwitcherOpen} onClose={() => setAccountSwitcherOpen(false)} />
     </Layout>
   );
 };
