@@ -1,12 +1,12 @@
-name: nest-isle
+name: ${COMPOSE_PROJECT_NAME:-nest-isle}
 
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: nest-isle-postgres
+    container_name: ${COMPOSE_PROJECT_NAME:-nest-isle}-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: nest_isle
+      POSTGRES_DB: ${POSTGRES_DB:-nest_isle}
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
@@ -14,7 +14,7 @@ services:
     volumes:
       - ../data/postgres:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d nest_isle"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ${POSTGRES_DB:-nest_isle}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -22,7 +22,7 @@ services:
 
   minio:
     image: minio/minio:latest
-    container_name: nest-isle-minio
+    container_name: ${COMPOSE_PROJECT_NAME:-nest-isle}-minio
     restart: unless-stopped
     command: server /data --console-address ":9001"
     environment:
@@ -42,7 +42,7 @@ services:
 
   redis:
     image: redis:latest
-    container_name: nest-isle-redis
+    container_name: ${COMPOSE_PROJECT_NAME:-nest-isle}-redis
     restart: unless-stopped
     ports:
       - "6379:6379"
@@ -55,4 +55,3 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
-

@@ -15,7 +15,7 @@ export class FileService {
     private databaseService: DatabaseService,
     private storageAdapter: StorageAdapter,
   ) {
-    this.bucket = this.configService.get<string>('minio.bucket', 'nest-isle');
+    this.bucket = this.configService.get<string>('minio.bucket')!;
 
     // 启动时确保 bucket 存在
     this.storageAdapter.ensureBucket(this.bucket).catch((err) => {

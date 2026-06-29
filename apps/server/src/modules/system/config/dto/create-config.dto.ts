@@ -20,7 +20,7 @@ export class CreateConfigDto {
   @Length(1, 100)
   key: string;
 
-  @ApiProperty({ description: '配置值', example: 'NestIsle' })
+  @ApiProperty({ description: '配置值', example: 'Admin' })
   @IsString()
   @IsNotEmpty()
   value: string;

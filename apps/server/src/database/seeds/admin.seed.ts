@@ -3,8 +3,16 @@ import postgres from 'postgres';
 import * as schema from '../schema';
 import { eq } from 'drizzle-orm';
 import { hashSync } from 'bcryptjs';
+import * as dotenv from 'dotenv';
+import * as path from 'path';
 
-const connectionString = `postgresql://${process.env.DB_USER ?? 'postgres'}:${process.env.DB_PASSWORD ?? 'postgres'}@${process.env.DB_HOST ?? 'localhost'}:${process.env.DB_PORT ?? 5432}/${process.env.DB_NAME ?? 'nest_isle'}`;
+// 加载 .env 文件
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+
+const APP_NAME = process.env.APP_NAME ?? 'nest-isle';
+const toSnakeCase = (s: string) => s.replace(/-/g, '_');
+
+const connectionString = `postgresql://${process.env.DB_USER ?? 'postgres'}:${process.env.DB_PASSWORD ?? 'postgres'}@${process.env.DB_HOST ?? 'localhost'}:${process.env.DB_PORT ?? 5432}/${process.env.DB_NAME ?? toSnakeCase(APP_NAME)}`;
 
 async function seed() {
   const client = postgres(connectionString);

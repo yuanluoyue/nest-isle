@@ -3,12 +3,15 @@ import { utilities as nestWinstonUtilities } from 'nest-winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 import * as path from 'path';
 
+const APP_NAME = process.env.APP_NAME ?? 'nest-isle';
+const APP_LABEL = APP_NAME.replace(/-/g, '').replace(/\b\w/g, (c, i) => i === 0 ? c.toUpperCase() : c);
+
 const logsDir = path.join(process.cwd(), 'logs');
 
 const consoleFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   winston.format.errors({ stack: true }),
-  nestWinstonUtilities.format.nestLike('NestIsle', {
+  nestWinstonUtilities.format.nestLike(APP_LABEL, {
     colors: true,
     prettyPrint: true,
   }),

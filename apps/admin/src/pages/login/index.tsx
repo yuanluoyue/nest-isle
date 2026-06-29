@@ -67,7 +67,7 @@ const LoginPage = () => {
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f2f5' }}>
       <Card style={{ width: 400, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <h1 style={{ marginBottom: 4 }}>Nest Isle</h1>
+          <h1 style={{ marginBottom: 4 }}>{import.meta.env.VITE_APP_NAME || 'Admin'}</h1>
           <p style={{ color: '#999' }}>通用后台管理系统</p>
         </div>
         <Form form={form} onFinish={handleSubmit} size="large">

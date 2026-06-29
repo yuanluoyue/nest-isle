@@ -1,5 +1,6 @@
 import { NestFactory, Reflector } from '@nestjs/core';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { WinstonModule } from 'nest-winston';
 import { AppModule } from './app.module';
@@ -37,8 +38,12 @@ async function bootstrap() {
   );
   app.useGlobalFilters(new AllExceptionsFilter());
 
+  const appConfig = app.get(ConfigService);
+  const appName = appConfig.get<string>('appName') ?? 'NestIsle';
+  const appTitle = appName.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+
   const config = new DocumentBuilder()
-    .setTitle('Nest Isle API')
+    .setTitle(`${appTitle} API`)
     .setDescription('通用后台管理系统 API')
     .setVersion('1.0')
     .addBearerAuth()

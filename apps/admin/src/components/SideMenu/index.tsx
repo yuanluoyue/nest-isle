@@ -51,7 +51,10 @@ const SideMenu: React.FC<SideMenuProps> = ({ collapsed }) => {
           fontSize: collapsed ? 14 : 16,
         }}
       >
-        {collapsed ? 'NI' : 'Nest Isle'}
+        {collapsed
+          ? (import.meta.env.VITE_APP_NAME || 'Admin').split(' ').map(w => w[0]).join('')
+          : import.meta.env.VITE_APP_NAME || 'Admin'
+        }
       </div>
       <Menu
         theme="dark"
