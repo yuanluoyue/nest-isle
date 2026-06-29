@@ -75,6 +75,11 @@ request.interceptors.response.use(
       }
     }
 
+    if (error.response?.status === 403) {
+      window.location.href = '/403';
+      return Promise.reject(error);
+    }
+
     const message = error.response?.data?.message || error.message || '请求失败';
     return Promise.reject(new Error(message));
   },

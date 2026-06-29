@@ -3,6 +3,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { LogService } from './log.service';
 import { QueryLogDto } from './dto/query-log.dto';
 import { JwtAuthGuard } from '../../../core/auth/jwt-auth.guard';
+import { RequirePermission } from '../../../core/auth/permissions.decorator';
 
 @ApiTags('AI 调用日志')
 @ApiBearerAuth()
@@ -13,12 +14,14 @@ export class LogController {
 
   @Get()
   @ApiOperation({ summary: '获取AI调用日志列表' })
+  @RequirePermission('ai:log:list')
   findAll(@Query() query: QueryLogDto) {
     return this.logService.findAll(query);
   }
 
   @Get(':id')
   @ApiOperation({ summary: '获取AI调用日志详情' })
+  @RequirePermission('ai:log:list')
   findOne(@Param('id') id: string) {
     return this.logService.findOne(id);
   }

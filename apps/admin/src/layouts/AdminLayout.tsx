@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Layout, Avatar, Dropdown, Breadcrumb, theme } from 'antd';
 import {
   UserOutlined,
@@ -17,6 +17,9 @@ import AccountSwitcher from '../components/AccountSwitcher';
 import type { MenuItem } from '../types/api';
 
 const { Header, Content } = Layout;
+
+// 公共路径，所有登录用户都能访问
+const PUBLIC_PATHS = ['/dashboard', '/profile', '/403'];
 
 function buildBreadcrumbItems(menus: MenuItem[], pathname: string) {
   const items: { title: string; path?: string }[] = [{ title: '首页', path: '/dashboard' }];
@@ -45,6 +48,28 @@ function buildBreadcrumbItems(menus: MenuItem[], pathname: string) {
   return items;
 }
 
+// 收集所有菜单 path（递归）
+function collectMenuPaths(menus: MenuItem[]): string[] {
+  const paths: string[] = [];
+  const walk = (list: MenuItem[]) => {
+    list.forEach((m) => {
+      if (m.path) paths.push(m.path);
+      if (m.children?.length) walk(m.children);
+    });
+  };
+  walk(menus);
+  return paths;
+}
+
+// 判断当前路径是否有权限访问
+function hasMenuPermission(pathname: string, menus: MenuItem[]): boolean {
+  if (PUBLIC_PATHS.some((p) => pathname === p)) return true;
+  const menuPaths = collectMenuPaths(menus);
+  return menuPaths.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`),
+  );
+}
+
 const AdminLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [accountSwitcherOpen, setAccountSwitcherOpen] = useState(false);
@@ -59,6 +84,14 @@ const AdminLayout = () => {
     () => buildBreadcrumbItems(menus, location.pathname),
     [menus, location.pathname],
   );
+
+  // 权限校验：菜单加载后，若无当前路径权限则重定向到 403 页面
+  useEffect(() => {
+    if (menus.length === 0) return;
+    if (!hasMenuPermission(location.pathname, menus)) {
+      navigate('/403', { replace: true });
+    }
+  }, [location.pathname, menus, navigate]);
 
   const handleLogout = async () => {
     try {

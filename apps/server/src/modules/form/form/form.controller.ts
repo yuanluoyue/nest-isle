@@ -16,6 +16,7 @@ import { CreateFormDto } from './dto/create-form.dto';
 import { UpdateFormDto } from './dto/update-form.dto';
 import { QueryFormDto } from './dto/query-form.dto';
 import { JwtAuthGuard } from '../../../core/auth/jwt-auth.guard';
+import { RequirePermission } from '../../../core/auth/permissions.decorator';
 import { CurrentUser } from '../../../core/auth/current-user.decorator';
 import { OperateLog } from '../../../common/decorator/operate-log.decorator';
 import { AiService } from '../../ai/ai.service';
@@ -45,6 +46,7 @@ export class FormController {
   @Post('ai-generate')
   @ApiOperation({ summary: 'AI 生成表单 Schema' })
   @OperateLog({ module: '表单管理', action: 'AI生成' })
+  @RequirePermission('form:design:create')
   async aiGenerate(
     @Body() body: { requirement: string; modelId?: string },
     @CurrentUser() user?: { id: string },
@@ -108,12 +110,14 @@ export class FormController {
 
   @Get()
   @ApiOperation({ summary: '获取表单列表' })
+  @RequirePermission('form:design:list')
   findAll(@Query() query: QueryFormDto) {
     return this.formService.findAll(query);
   }
 
   @Get(':id')
   @ApiOperation({ summary: '获取表单详情' })
+  @RequirePermission('form:design:list')
   findOne(@Param('id') id: string) {
     return this.formService.findOne(id);
   }
@@ -121,6 +125,7 @@ export class FormController {
   @Post()
   @ApiOperation({ summary: '创建表单' })
   @OperateLog({ module: '表单管理', action: '新增' })
+  @RequirePermission('form:design:create')
   create(@Body() dto: CreateFormDto, @CurrentUser() user?: { id: string }) {
     return this.formService.create(dto, user?.id);
   }
@@ -128,6 +133,7 @@ export class FormController {
   @Put(':id')
   @ApiOperation({ summary: '更新表单' })
   @OperateLog({ module: '表单管理', action: '编辑' })
+  @RequirePermission('form:design:update')
   update(@Param('id') id: string, @Body() dto: UpdateFormDto) {
     return this.formService.update(id, dto);
   }
@@ -135,6 +141,7 @@ export class FormController {
   @Delete(':id')
   @ApiOperation({ summary: '删除表单' })
   @OperateLog({ module: '表单管理', action: '删除' })
+  @RequirePermission('form:design:delete')
   remove(@Param('id') id: string) {
     return this.formService.remove(id);
   }
@@ -142,6 +149,7 @@ export class FormController {
   @Put(':id/publish')
   @ApiOperation({ summary: '发布表单' })
   @OperateLog({ module: '表单管理', action: '发布' })
+  @RequirePermission('form:design:publish')
   publish(@Param('id') id: string, @CurrentUser() user?: { id: string }) {
     return this.formService.publish(id, user?.id);
   }
@@ -149,12 +157,14 @@ export class FormController {
   @Put(':id/unpublish')
   @ApiOperation({ summary: '停用表单' })
   @OperateLog({ module: '表单管理', action: '停用' })
+  @RequirePermission('form:design:unpublish')
   unpublish(@Param('id') id: string) {
     return this.formService.unpublish(id);
   }
 
   @Get('published/:code')
   @ApiOperation({ summary: '获取已发布表单Schema（按编码）' })
+  @RequirePermission('form:design:list')
   getPublishedSchema(@Param('code') code: string) {
     return this.formService.getPublishedSchema(code);
   }

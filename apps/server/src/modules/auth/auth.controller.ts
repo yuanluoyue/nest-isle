@@ -21,6 +21,7 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { JwtAuthGuard } from '../../core/auth/jwt-auth.guard';
 import { CurrentUser } from '../../core/auth/current-user.decorator';
+import { Public } from '../../core/auth/public.decorator';
 
 @ApiTags('认证')
 @Controller('auth')
@@ -31,12 +32,14 @@ export class AuthController {
   ) {}
 
   @Get('captcha')
+  @Public()
   @ApiOperation({ summary: '获取验证码' })
   getCaptcha() {
     return this.captchaService.generate();
   }
 
   @Post('login')
+  @Public()
   @ApiOperation({ summary: '用户登录' })
   login(@Body() dto: LoginDto, @Req() req: Request) {
     const ip = req.ip || req.socket.remoteAddress || null;
@@ -81,6 +84,7 @@ export class AuthController {
   }
 
   @Post('refresh')
+  @Public()
   @ApiOperation({ summary: '刷新令牌' })
   refresh(@Body() dto: RefreshTokenDto) {
     return this.authService.refresh(dto.refreshToken);

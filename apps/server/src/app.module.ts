@@ -1,9 +1,12 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import configuration from './config/configuration';
 import { DatabaseModule } from './database/database.module';
 import { HealthModule } from './modules/health/health.module';
 import { AuthModule } from './core/auth/auth.module';
+import { JwtAuthGuard } from './core/auth/jwt-auth.guard';
+import { PermissionsGuard } from './core/auth/permissions.guard';
 import { CacheModule } from './core/cache/cache.module';
 import { LoggerModule } from './core/logger/logger.module';
 import { QueueModule } from './core/queue/queue.module';
@@ -37,6 +40,17 @@ import { FormFeatureModule } from './modules/form/form.module';
     DashboardModule,
     AiModule,
     FormFeatureModule,
+  ],
+  providers: [
+    // 顺序很重要：先认证（JwtAuthGuard），后授权（PermissionsGuard）
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: PermissionsGuard,
+    },
   ],
 })
 export class AppModule {}

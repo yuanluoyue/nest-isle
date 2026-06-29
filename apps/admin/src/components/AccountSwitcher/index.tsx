@@ -203,7 +203,9 @@ export default function AccountSwitcher({ open, onClose }: Props) {
           </Form.Item>
           <Form.Item name="captchaCode" label="验证码" rules={[{ required: true, message: '请输入验证码' }]}>
             <Input
+              autoFocus
               placeholder="请输入图中验证码"
+              onPressEnter={handleCaptchaSubmit}
               suffix={
                 <div
                   onClick={refreshCaptcha}

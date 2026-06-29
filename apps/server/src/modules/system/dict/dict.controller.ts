@@ -18,6 +18,7 @@ import { CreateDictItemDto } from './dto/create-dict-item.dto';
 import { UpdateDictItemDto } from './dto/update-dict-item.dto';
 import { QueryDictItemDto } from './dto/query-dict-item.dto';
 import { JwtAuthGuard } from '../../../core/auth/jwt-auth.guard';
+import { RequirePermission } from '../../../core/auth/permissions.decorator';
 import { OperateLog } from '../../../common/decorator/operate-log.decorator';
 
 @ApiTags('字典管理')
@@ -31,12 +32,14 @@ export class DictController {
 
   @Get('type')
   @ApiOperation({ summary: '获取字典类型列表' })
+  @RequirePermission('system:dict:list')
   findAllTypes(@Query() query: QueryDictTypeDto) {
     return this.dictService.findAllTypes(query);
   }
 
   @Get('type/:id')
   @ApiOperation({ summary: '获取字典类型详情' })
+  @RequirePermission('system:dict:list')
   findOneType(@Param('id') id: string) {
     return this.dictService.findOneType(id);
   }
@@ -44,6 +47,7 @@ export class DictController {
   @Post('type')
   @ApiOperation({ summary: '创建字典类型' })
   @OperateLog({ module: '字典管理', action: '新增字典类型' })
+  @RequirePermission('system:dict:type:create')
   createType(@Body() dto: CreateDictTypeDto) {
     return this.dictService.createType(dto);
   }
@@ -51,6 +55,7 @@ export class DictController {
   @Put('type/:id')
   @ApiOperation({ summary: '更新字典类型' })
   @OperateLog({ module: '字典管理', action: '编辑字典类型' })
+  @RequirePermission('system:dict:type:update')
   updateType(@Param('id') id: string, @Body() dto: UpdateDictTypeDto) {
     return this.dictService.updateType(id, dto);
   }
@@ -58,6 +63,7 @@ export class DictController {
   @Delete('type/:id')
   @ApiOperation({ summary: '删除字典类型' })
   @OperateLog({ module: '字典管理', action: '删除字典类型' })
+  @RequirePermission('system:dict:type:delete')
   removeType(@Param('id') id: string) {
     return this.dictService.removeType(id);
   }
@@ -66,12 +72,14 @@ export class DictController {
 
   @Get('item')
   @ApiOperation({ summary: '获取字典项列表（按字典类型）' })
+  @RequirePermission('system:dict:list')
   findAllItems(@Query() query: QueryDictItemDto) {
     return this.dictService.findAllItems(query);
   }
 
   @Get('item/:id')
   @ApiOperation({ summary: '获取字典项详情' })
+  @RequirePermission('system:dict:list')
   findOneItem(@Param('id') id: string) {
     return this.dictService.findOneItem(id);
   }
@@ -79,6 +87,7 @@ export class DictController {
   @Post('item')
   @ApiOperation({ summary: '创建字典项' })
   @OperateLog({ module: '字典管理', action: '新增字典项' })
+  @RequirePermission('system:dict:item:create')
   createItem(@Body() dto: CreateDictItemDto) {
     return this.dictService.createItem(dto);
   }
@@ -86,6 +95,7 @@ export class DictController {
   @Put('item/:id')
   @ApiOperation({ summary: '更新字典项' })
   @OperateLog({ module: '字典管理', action: '编辑字典项' })
+  @RequirePermission('system:dict:item:update')
   updateItem(@Param('id') id: string, @Body() dto: UpdateDictItemDto) {
     return this.dictService.updateItem(id, dto);
   }
@@ -93,6 +103,7 @@ export class DictController {
   @Delete('item/:id')
   @ApiOperation({ summary: '删除字典项' })
   @OperateLog({ module: '字典管理', action: '删除字典项' })
+  @RequirePermission('system:dict:item:delete')
   removeItem(@Param('id') id: string) {
     return this.dictService.removeItem(id);
   }

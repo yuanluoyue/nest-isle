@@ -4,6 +4,7 @@ import type { Response } from 'express';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import { PlaygroundService } from './playground.service';
 import { JwtAuthGuard } from '../../../core/auth/jwt-auth.guard';
+import { RequirePermission } from '../../../core/auth/permissions.decorator';
 import { CurrentUser } from '../../../core/auth/current-user.decorator';
 
 @ApiTags('AI Playground')
@@ -34,6 +35,7 @@ export class PlaygroundController {
       },
     },
   })
+  @RequirePermission('ai:playground:view')
   async chat(
     @Body()
     body: {

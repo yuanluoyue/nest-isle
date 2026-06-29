@@ -3,6 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { SessionService } from '../../modules/monitor/session/session.service';
+import { PermissionService } from './permission.service';
 import configuration from '../../config/configuration';
 
 export interface JwtPayload {
@@ -16,6 +17,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     configService: ConfigService,
     private sessionService: SessionService,
+    private permissionService: PermissionService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -38,6 +40,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('会话已过期，请重新登录');
     }
 
-    return { id: payload.sub, sid: payload.sid, type: payload.type };
+    // 加载用户权限（实时查询，权限变更即时生效）
+    const permissions = await this.permissionService.getPermissions(payload.sub);
+
+    return { id: payload.sub, sid: payload.sid, type: payload.type, permissions };
   }
 }
