@@ -9,7 +9,9 @@
     "docker:dev": "docker-compose -f docker/docker-compose.dev.yml up -d",
     "server:dev": "pnpm --filter server run start:dev",
     "admin:dev": "pnpm --filter admin run dev",
-    "db:seed": "pnpm --filter server run db:seed"
+    "db:seed": "pnpm --filter server run db:seed",
+    "docker:dev-all-up": "bash docker/dev.sh",
+    "docker:dev-all-down": "bash docker/dev.sh down"
   },
   "packageManager": "pnpm@10.11.0"
 }

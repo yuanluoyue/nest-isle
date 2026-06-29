@@ -46,7 +46,7 @@ const statusMap: Record<number, { color: string; text: string }> = {
 };
 
 export default function ConfigPage() {
-  const { modal } = App.useApp();
+  App.useApp();
   const [data, setData] = useState<ConfigItem[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);

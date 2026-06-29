@@ -58,7 +58,7 @@ const FormDatasourcePage = () => {
   const [currentType, setCurrentType] = useState('dict');
 
   // 测试结果
-  const [testResult, setTestResult] = useState<any[] | null>(null);
+  const [, setTestResult] = useState<any[] | null>(null);
   const [testLoading, setTestLoading] = useState(false);
 
   const fetchData = useCallback(async () => {

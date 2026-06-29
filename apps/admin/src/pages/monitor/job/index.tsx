@@ -134,7 +134,6 @@ const translateCron = (cron: string | null): string => {
 
     // 拼接：如果没有时间前缀，加上"每天"
     const hasTimePrefix = everyMinute || minute.startsWith('*/') || hour.startsWith('*/');
-    const hasDayOrWeek = !everyDay || !everyWeek || !everyMonth;
     if (!hasTimePrefix && everyDay && everyWeek && everyMonth) {
       desc.unshift('每天');
     }
