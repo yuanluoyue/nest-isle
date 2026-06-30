@@ -161,6 +161,7 @@ async function seed() {
     { name: '用户编辑', permission: 'system:user:update', sort: 2 },
     { name: '用户删除', permission: 'system:user:delete', sort: 3 },
     { name: '重置密码', permission: 'system:user:reset-password', sort: 4 },
+    { name: '分配角色', permission: 'system:user:assign', sort: 5 },
   ];
 
   for (const btn of userButtons) {
