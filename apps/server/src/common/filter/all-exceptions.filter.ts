@@ -8,9 +8,13 @@ import {
 } from '@nestjs/common';
 import type { AuthenticatedRequest } from '../../types/auth-request';
 
-interface ExpressResponse {
-  status(code: number): ExpressResponse;
-  json(body: unknown): void;
+/**
+ * ctx.getResponse() 在 FastifyAdapter 下返回原生 Fastify Reply，
+ * API 是 .code() / .send()，不是 Express 的 .status() / .json()。
+ */
+interface FastifyReply {
+  code(status: number): FastifyReply;
+  send(body: unknown): void;
 }
 
 @Catch()
@@ -19,7 +23,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
-    const response = ctx.getResponse<ExpressResponse>();
+    const response = ctx.getResponse<FastifyReply>();
     const request = ctx.getRequest<AuthenticatedRequest>();
 
     let code: number = HttpStatus.INTERNAL_SERVER_ERROR;
@@ -53,7 +57,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       );
     }
 
-    response.status(code).json({
+    response.code(code).send({
       code,
       message,
       data: null,

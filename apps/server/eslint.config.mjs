@@ -36,7 +36,11 @@ export default tseslint.config(
   // 理由：spec 文件大量使用 mock、强制断言任意形状，并直接调用未绑定的方法（jest.fn 等）
   //      不必满足生产代码的严格类型契约，否则测试代码会冗余地充斥 as 断言
   {
-    files: ['**/*.spec.ts', '**/*.test.ts'],
+    files: [
+      '**/*.spec.ts',
+      '**/*.test.ts',
+      '**/*.e2e-spec.ts',
+    ],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unsafe-argument': 'off',

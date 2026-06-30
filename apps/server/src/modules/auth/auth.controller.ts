@@ -13,7 +13,7 @@ import {
   ApiBearerAuth,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import type { Request } from 'express';
+import type { AuthenticatedRequest } from '../../types/auth-request';
 import { AuthService } from './auth.service';
 import { CaptchaService } from './captcha.service';
 import { LoginDto } from './dto/login.dto';
@@ -41,9 +41,12 @@ export class AuthController {
   @Post('login')
   @Public()
   @ApiOperation({ summary: '用户登录' })
-  login(@Body() dto: LoginDto, @Req() req: Request) {
-    const ip = req.ip || req.socket.remoteAddress || null;
-    const userAgent = req.headers['user-agent'] ?? null;
+  login(@Body() dto: LoginDto, @Req() req: AuthenticatedRequest) {
+    const ip = req.ip ?? null;
+    const headerValue = req.headers?.['user-agent'];
+    const userAgent = Array.isArray(headerValue)
+      ? (headerValue[0] ?? null)
+      : (headerValue ?? null);
     return this.authService.login(dto, { ip, userAgent });
   }
 

@@ -34,8 +34,8 @@ export class OperateLogInterceptor implements NestInterceptor {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     const user = request.user;
     const method = request.method ?? '';
-    const url = request.originalUrl ?? '';
-    const ip = request.ip || request.socket?.remoteAddress || '';
+    const url = request.url ?? '';
+    const ip = request.ip ?? '';
     const body = request.body ? JSON.stringify(request.body) : null;
 
     return next.handle().pipe(

@@ -1,11 +1,23 @@
 import { Controller, Post, Body, Res, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
-import type { Response } from 'express';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import { PlaygroundService } from './playground.service';
 import { JwtAuthGuard } from '../../../core/auth/jwt-auth.guard';
 import { RequirePermission } from '../../../core/auth/permissions.decorator';
 import { CurrentUser } from '../../../core/auth/current-user.decorator';
+
+/**
+ * SSE 场景下需要直接操作底层 Node 原生 response。
+ * ESLint projectService 无法稳定解析 fastify 的 FastifyReply 类型，
+ * 因此显式声明用到的 raw 字段。
+ */
+interface SseReply {
+  raw: {
+    setHeader(name: string, value: string | number | string[]): void;
+    write(chunk: string | Buffer): boolean;
+    end(): void;
+  };
+}
 
 @ApiTags('AI Playground')
 @ApiBearerAuth()
@@ -42,13 +54,14 @@ export class PlaygroundController {
       modelId: string;
       messages: ChatCompletionMessageParam[];
     },
-    @Res() res: Response,
+    @Res() res: SseReply,
     @CurrentUser() user: { id: string },
   ) {
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-    res.setHeader('X-Accel-Buffering', 'no');
+    // Fastify 下 SSE 需直接操作底层 Node 原生 response（res.raw）
+    res.raw.setHeader('Content-Type', 'text/event-stream');
+    res.raw.setHeader('Cache-Control', 'no-cache');
+    res.raw.setHeader('Connection', 'keep-alive');
+    res.raw.setHeader('X-Accel-Buffering', 'no');
 
     const userId = user?.id;
     const stream = await this.playgroundService.chatStream(
@@ -61,16 +74,16 @@ export class PlaygroundController {
       for await (const chunk of stream) {
         const content = chunk.choices?.[0]?.delta?.content || '';
         if (content) {
-          res.write(`data: ${JSON.stringify({ content })}\n\n`);
+          res.raw.write(`data: ${JSON.stringify({ content })}\n\n`);
         }
       }
-      res.write('data: [DONE]\n\n');
+      res.raw.write('data: [DONE]\n\n');
     } catch (error) {
-      res.write(
+      res.raw.write(
         `data: ${JSON.stringify({ error: (error as Error).message })}\n\n`,
       );
     } finally {
-      res.end();
+      res.raw.end();
     }
   }
 }

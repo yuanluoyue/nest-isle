@@ -4,6 +4,7 @@ import { and, eq, isNull, sum } from 'drizzle-orm';
 import { sysFile } from '../../database/schema';
 import { DatabaseService } from '../../database/database.service';
 import { StorageAdapter } from '../../core/storage/storage.adapter';
+import type { UploadedFile } from '../../types/uploaded-file';
 
 @Injectable()
 export class FileService {
@@ -29,11 +30,7 @@ export class FileService {
     return this.databaseService.db;
   }
 
-  async upload(
-    file: Express.Multer.File,
-    createdBy: string,
-    directory = 'uploads',
-  ) {
+  async upload(file: UploadedFile, createdBy: string, directory = 'uploads') {
     const ext = file.originalname.split('.').pop();
     const timestamp = Date.now();
     const randomStr = Math.random().toString(36).substring(2, 8);

@@ -7,16 +7,16 @@ import {
 import { AllExceptionsFilter } from './all-exceptions.filter';
 
 interface MockResponse {
-  status: jest.Mock;
-  json: jest.Mock;
+  code: jest.Mock;
+  send: jest.Mock;
 }
 
 function createHost(): { host: ArgumentsHost; res: MockResponse; req: any } {
   const res: MockResponse = {
-    status: jest.fn().mockReturnThis(),
-    json: jest.fn().mockReturnThis(),
+    code: jest.fn().mockReturnThis(),
+    send: jest.fn().mockReturnThis(),
   };
-  const req = { method: 'POST', url: '/api/test', socket: {} };
+  const req = { method: 'POST', url: '/api/test' };
   const host: ArgumentsHost = {
     switchToHttp: () => ({
       getResponse: () => res,
@@ -45,8 +45,8 @@ describe('AllExceptionsFilter', () => {
 
     filter.catch(exc, host);
 
-    expect(res.status).toHaveBeenCalledWith(HttpStatus.FORBIDDEN);
-    expect(res.json).toHaveBeenCalledWith(
+    expect(res.code).toHaveBeenCalledWith(HttpStatus.FORBIDDEN);
+    expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({
         code: HttpStatus.FORBIDDEN,
         message: 'forbidden',
@@ -64,8 +64,8 @@ describe('AllExceptionsFilter', () => {
 
     filter.catch(exc, host);
 
-    expect(res.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
-    expect(res.json).toHaveBeenCalledWith(
+    expect(res.code).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+    expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({
         code: HttpStatus.BAD_REQUEST,
         message: '字段错误',
@@ -82,7 +82,7 @@ describe('AllExceptionsFilter', () => {
 
     filter.catch(exc, host);
 
-    expect(res.json).toHaveBeenCalledWith(
+    expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({
         message: '用户名不能为空; 密码不能为空',
       }),
@@ -95,8 +95,8 @@ describe('AllExceptionsFilter', () => {
 
     filter.catch(exc, host);
 
-    expect(res.status).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);
-    expect(res.json).toHaveBeenCalledWith(
+    expect(res.code).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);
+    expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({
         code: HttpStatus.INTERNAL_SERVER_ERROR,
         message: 'boom',
@@ -111,8 +111,8 @@ describe('AllExceptionsFilter', () => {
 
     filter.catch('strange thing', host);
 
-    expect(res.status).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);
-    expect(res.json).toHaveBeenCalledWith(
+    expect(res.code).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);
+    expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({
         code: HttpStatus.INTERNAL_SERVER_ERROR,
         message: 'Internal server error',
