@@ -26,22 +26,22 @@ export class TransformInterceptor<T> implements NestInterceptor<
     const now = new Date().toISOString();
 
     return next.handle().pipe(
-      map((data) => {
+      map((data: unknown): Response<T> => {
         if (
-          data &&
+          data !== null &&
           typeof data === 'object' &&
           'code' in data &&
           'message' in data &&
           'data' in data &&
           'time' in data
         ) {
-          return data;
+          return data as Response<T>;
         }
 
         return {
           code: 200,
           message: 'success',
-          data: data || null,
+          data: (data ?? null) as T,
           time: now,
         };
       }),

@@ -106,7 +106,8 @@ export class JobService {
   }
 
   async update(id: string, dto: UpdateJobDto) {
-    const existing = await this.findOne(id);
+    // 校验存在性，不存在则抛 NotFoundException
+    await this.findOne(id);
 
     const updateData: Record<string, unknown> = { updatedAt: new Date() };
     if (dto.name !== undefined) updateData.name = dto.name;
@@ -213,7 +214,8 @@ export class JobService {
     const jobName = `job_${jobId}`;
     try {
       const job = new CronJob(cron, () => {
-        this.executeJob(jobId, handlerName);
+        // 任务执行异步进行，避免阻塞 cron 调度；错误在 executeJob 内已捕获并记录
+        void this.executeJob(jobId, handlerName);
       });
       this.schedulerRegistry.addCronJob(jobName, job);
       job.start();

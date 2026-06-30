@@ -18,8 +18,10 @@ export class FileService {
     this.bucket = this.configService.get<string>('minio.bucket')!;
 
     // 启动时确保 bucket 存在
-    this.storageAdapter.ensureBucket(this.bucket).catch((err) => {
-      this.logger.error(`Failed to ensure bucket: ${err.message}`);
+    this.storageAdapter.ensureBucket(this.bucket).catch((err: unknown) => {
+      this.logger.error(
+        `Failed to ensure bucket: ${err instanceof Error ? err.message : String(err)}`,
+      );
     });
   }
 
@@ -94,7 +96,7 @@ export class FileService {
         await this.storageAdapter.removeObject(record.bucket, record.path);
       } catch (error) {
         this.logger.error(
-          `Failed to remove storage object ${record.bucket}/${record.path}: ${error.message}`,
+          `Failed to remove storage object ${record.bucket}/${record.path}: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     }

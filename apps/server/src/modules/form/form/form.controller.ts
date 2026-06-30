@@ -94,7 +94,7 @@ export class FormController {
       );
 
       // 提取 JSON schema
-      let schema = null;
+      let schema: unknown = null;
       try {
         // 尝试从 markdown 代码块中提取 JSON
         const jsonMatch = result.match(/```(?:json)?\s*([\s\S]*?)```/);

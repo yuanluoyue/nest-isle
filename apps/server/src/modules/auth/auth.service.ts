@@ -3,7 +3,7 @@ import {
   UnauthorizedException,
   BadRequestException,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { eq, and, isNull, asc, inArray, not } from 'drizzle-orm';
 import {
@@ -25,6 +25,13 @@ import { buildMenuTree } from './menu-tree.util';
 export interface LoginContext {
   ip?: string | null;
   userAgent?: string | null;
+}
+
+/** JWT 载荷，对应 generateTokens 中 sign 的内容 */
+interface CustomJwtPayload {
+  sub: string;
+  sid: string;
+  type: string;
 }
 
 @Injectable()
@@ -96,7 +103,7 @@ export class AuthService {
     });
 
     // 签发 JWT（包含 sid 和 type）
-    const { accessToken, refreshToken } = await this.generateTokens(
+    const { accessToken, refreshToken } = this.generateTokens(
       user.id,
       session.sid,
       'admin',
@@ -185,14 +192,16 @@ export class AuthService {
 
   async refresh(refreshToken: string) {
     try {
-      const payload = this.jwtService.verify(refreshToken);
+      const payload = this.jwtService.verify(
+        refreshToken,
+      ) as unknown as CustomJwtPayload;
       // 校验 session 是否仍在 Redis 中有效
       const session = await this.sessionService.validate(payload.sid);
       if (!session) {
         throw new UnauthorizedException('会话已过期，请重新登录');
       }
       const { accessToken, refreshToken: newRefreshToken } =
-        await this.generateTokens(payload.sub, payload.sid, payload.type);
+        this.generateTokens(payload.sub, payload.sid, payload.type);
 
       return {
         accessToken,
@@ -209,25 +218,26 @@ export class AuthService {
     await this.sessionService.logout(sid);
   }
 
-  private async generateTokens(userId: string, sid: string, type: string) {
-    const secret = this.configService.get<string>(
-      'jwt.secret',
-      configuration().jwt.secret,
-    );
-    const expiresIn = this.configService.get<string>(
-      'jwt.expiresIn',
-      configuration().jwt.expiresIn,
-    );
+  private generateTokens(userId: string, sid: string, type: string) {
+    const baseOptions: JwtSignOptions = {
+      secret: this.configService.get<string>(
+        'jwt.secret',
+        configuration().jwt.secret,
+      ),
+      expiresIn: this.configService.get<string>(
+        'jwt.expiresIn',
+        configuration().jwt.expiresIn,
+      ),
+    };
 
-    const accessToken = this.jwtService.sign({ sub: userId, sid, type }, {
-      secret,
-      expiresIn,
-    } as any);
-
-    const refreshToken = this.jwtService.sign({ sub: userId, sid, type }, {
-      secret,
-      expiresIn: '30d',
-    } as any);
+    const accessToken = this.jwtService.sign(
+      { sub: userId, sid, type },
+      baseOptions,
+    );
+    const refreshToken = this.jwtService.sign(
+      { sub: userId, sid, type },
+      { ...baseOptions, expiresIn: '30d' },
+    );
 
     return { accessToken, refreshToken };
   }

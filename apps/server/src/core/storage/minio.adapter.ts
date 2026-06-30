@@ -48,7 +48,7 @@ export class MinioAdapter extends StorageAdapter {
       await this.client.removeObject(bucket, path);
     } catch (error) {
       this.logger.error(
-        `Failed to remove object ${bucket}/${path}: ${error.message}`,
+        `Failed to remove object ${bucket}/${path}: ${error instanceof Error ? error.message : String(error)}`,
       );
       throw error;
     }
@@ -74,7 +74,9 @@ export class MinioAdapter extends StorageAdapter {
         this.logger.log(`Created bucket: ${bucket}`);
       }
     } catch (error) {
-      this.logger.error(`Failed to ensure bucket ${bucket}: ${error.message}`);
+      this.logger.error(
+        `Failed to ensure bucket ${bucket}: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw error;
     }
   }

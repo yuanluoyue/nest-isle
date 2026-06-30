@@ -6,7 +6,12 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
-import { Response } from 'express';
+import type { AuthenticatedRequest } from '../../types/auth-request';
+
+interface ExpressResponse {
+  status(code: number): ExpressResponse;
+  json(body: unknown): void;
+}
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -14,10 +19,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
-    const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest();
+    const response = ctx.getResponse<ExpressResponse>();
+    const request = ctx.getRequest<AuthenticatedRequest>();
 
-    let code = HttpStatus.INTERNAL_SERVER_ERROR;
+    let code: number = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal server error';
 
     if (exception instanceof HttpException) {
@@ -43,7 +48,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     // 500 错误打印完整日志
     if (code >= 500) {
       this.logger.error(
-        `${request.method} ${request.url} ${code} - ${message}`,
+        `${request.method ?? ''} ${request.url ?? ''} ${code} - ${message}`,
         exception instanceof Error ? exception.stack : undefined,
       );
     }

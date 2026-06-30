@@ -9,7 +9,6 @@ function resetStore() {
 }
 
 function addAccount(over: Partial<LocalAccount> = {}) {
-  const before = useLocalAccountStore.getState().accounts;
   useLocalAccountStore.getState().addAccount({
     username: over.username ?? 'alice',
     password: over.password ?? 'pw1',

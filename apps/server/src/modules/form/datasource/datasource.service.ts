@@ -14,6 +14,41 @@ import { CreateDatasourceDto } from './dto/create-datasource.dto';
 import { UpdateDatasourceDto } from './dto/update-datasource.dto';
 import { QueryDatasourceDto } from './dto/query-datasource.dto';
 
+/** 字典类型数据源配置 */
+interface DictDatasourceConfig {
+  dictCode?: string;
+  code?: string;
+}
+
+/** 静态数据源配置 */
+interface StaticDatasourceConfig {
+  options?: unknown[];
+}
+
+/** API 类型数据源配置 */
+interface ApiDatasourceConfig {
+  url?: string;
+  method?: string;
+  labelField?: string;
+  valueField?: string;
+  headers?: Record<string, string>;
+}
+
+/** 数据源条目 */
+interface DatasourceOption {
+  label: unknown;
+  value: unknown;
+}
+
+/** 静态选项条目 */
+interface StaticOption {
+  label?: unknown;
+  name?: unknown;
+  value?: unknown;
+  id?: unknown;
+  [key: string]: unknown;
+}
+
 @Injectable()
 export class DatasourceService {
   constructor(private databaseService: DatabaseService) {}
@@ -56,13 +91,18 @@ export class DatasourceService {
   /**
    * 解析数据源数据
    */
-  private async resolveDatasourceData(datasource: any) {
-    const { type, config } = datasource;
+  private async resolveDatasourceData(datasource: {
+    type: string | null;
+    config?: unknown;
+  }): Promise<DatasourceOption[]> {
+    const type = datasource.type ?? '';
+    const { config } = datasource;
 
     switch (type) {
       case 'dict': {
         // 从字典加载选项，config 中存 dictCode
-        const dictCode = config?.dictCode || config?.code;
+        const cfg = (config ?? {}) as DictDatasourceConfig;
+        const dictCode = cfg.dictCode || cfg.code;
         if (!dictCode) return [];
 
         const dictType = await this.db.query.sysDictType.findFirst({
@@ -78,7 +118,7 @@ export class DatasourceService {
           orderBy: (items, { asc }) => [asc(items.sort)],
         });
 
-        return items.map((item: any) => ({
+        return items.map((item) => ({
           label: item.label,
           value: item.value,
         }));
@@ -86,46 +126,55 @@ export class DatasourceService {
 
       case 'static': {
         // 静态数据，config 中直接存 options 数组
-        const options = config?.options || config || [];
-        if (Array.isArray(options)) {
-          return options.map((opt: any) => {
-            if (typeof opt === 'object') {
-              return {
-                label: opt.label || opt.name,
-                value: opt.value || opt.id,
-              };
-            }
-            return { label: String(opt), value: String(opt) };
-          });
-        }
-        return [];
+        const cfg = (config ?? {}) as StaticDatasourceConfig;
+        const options = cfg.options ?? (Array.isArray(config) ? config : []);
+        if (!Array.isArray(options)) return [];
+
+        return options.map((opt) => {
+          if (opt && typeof opt === 'object') {
+            const o = opt as StaticOption;
+            return {
+              label: o.label ?? o.name,
+              value: o.value ?? o.id,
+            };
+          }
+          return { label: String(opt), value: String(opt) };
+        });
       }
 
       case 'api': {
         // 从外部 API 加载，config 中存 url、method、labelField、valueField
+        const cfg = (config ?? {}) as ApiDatasourceConfig;
         const {
           url,
           method = 'GET',
           labelField = 'label',
           valueField = 'value',
           headers,
-        } = config || {};
+        } = cfg;
         if (!url) return [];
 
         try {
           const response = await fetch(url, {
             method: method.toUpperCase(),
-            headers: headers || {},
+            headers: headers ?? {},
           });
-          const data = await response.json();
+          const data: unknown = await response.json();
           const list = Array.isArray(data)
             ? data
-            : data.data || data.list || [];
+            : Array.isArray((data as { data?: unknown[] })?.data)
+              ? (data as { data: unknown[] }).data
+              : Array.isArray((data as { list?: unknown[] })?.list)
+                ? (data as { list: unknown[] }).list
+                : [];
 
-          return list.map((item: any) => ({
-            label: item[labelField],
-            value: item[valueField],
-          }));
+          return list.map((item) => {
+            const o = (item ?? {}) as Record<string, unknown>;
+            return {
+              label: o[labelField],
+              value: o[valueField],
+            };
+          });
         } catch {
           return [];
         }
@@ -216,7 +265,7 @@ export class DatasourceService {
       }
     }
 
-    const updateData: Record<string, any> = {};
+    const updateData: Record<string, unknown> = {};
     if (dto.name !== undefined) updateData.name = dto.name;
     if (dto.code !== undefined) updateData.code = dto.code;
     if (dto.type !== undefined) updateData.type = dto.type;

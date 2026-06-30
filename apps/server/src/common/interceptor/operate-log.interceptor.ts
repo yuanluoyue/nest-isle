@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Observable, tap } from 'rxjs';
-import { Request } from 'express';
+import type { AuthenticatedRequest } from '../../types/auth-request';
 import {
   OPERATE_LOG_KEY,
   OperateLogOptions,
@@ -21,7 +21,7 @@ export class OperateLogInterceptor implements NestInterceptor {
     private databaseService: DatabaseService,
   ) {}
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const logOptions = this.reflector.get<OperateLogOptions | undefined>(
       OPERATE_LOG_KEY,
       context.getHandler(),
@@ -31,17 +31,17 @@ export class OperateLogInterceptor implements NestInterceptor {
       return next.handle();
     }
 
-    const request = context.switchToHttp().getRequest<Request>();
-    const user = (request as any).user;
-    const method = request.method;
-    const url = request.originalUrl;
-    const ip = request.ip || request.socket.remoteAddress || '';
+    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
+    const user = request.user;
+    const method = request.method ?? '';
+    const url = request.originalUrl ?? '';
+    const ip = request.ip || request.socket?.remoteAddress || '';
     const body = request.body ? JSON.stringify(request.body) : null;
 
     return next.handle().pipe(
       tap({
-        next: (response) => {
-          this.saveLog({
+        next: (response: unknown) => {
+          void this.saveLog({
             userId: user?.id,
             module: logOptions.module,
             description: logOptions.action,
@@ -53,8 +53,8 @@ export class OperateLogInterceptor implements NestInterceptor {
             response: response ? JSON.stringify(response) : null,
           });
         },
-        error: (err) => {
-          this.saveLog({
+        error: (err: unknown) => {
+          void this.saveLog({
             userId: user?.id,
             module: logOptions.module,
             description: logOptions.action,
@@ -63,7 +63,8 @@ export class OperateLogInterceptor implements NestInterceptor {
             ip,
             status: 1,
             request: body,
-            response: err?.message || 'Internal Server Error',
+            response:
+              err instanceof Error ? err.message : 'Internal Server Error',
           });
         },
       }),

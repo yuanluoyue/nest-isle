@@ -1,5 +1,5 @@
 import { Global, Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 import { StorageAdapter } from './storage.adapter';
 import { MinioAdapter } from './minio.adapter';
 import type { StorageConfig } from './storage.adapter';

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { eq, and, SQL } from 'drizzle-orm';
-import { sysFormRecord, sysForm } from '../../../database/schema';
+import { sysFormRecord } from '../../../database/schema';
 import { DatabaseService } from '../../../database/database.service';
 import { CreateRecordDto } from './dto/create-record.dto';
 import { QueryRecordDto } from './dto/query-record.dto';

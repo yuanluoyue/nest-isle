@@ -5,6 +5,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import type { AuthenticatedRequest } from '../../types/auth-request';
 import { PERMISSIONS_KEY } from './permissions.decorator';
 
 @Injectable()
@@ -22,7 +23,7 @@ export class PermissionsGuard implements CanActivate {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     const userPermissions: string[] = request.user?.permissions ?? [];
 
     // 拥有任一所需权限即可通过

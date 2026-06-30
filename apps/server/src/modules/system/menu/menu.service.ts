@@ -9,6 +9,7 @@ import { DatabaseService } from '../../../database/database.service';
 import { CreateMenuDto } from './dto/create-menu.dto';
 import { UpdateMenuDto } from './dto/update-menu.dto';
 import { QueryMenuDto } from './dto/query-menu.dto';
+import { buildMenuTree } from '../../auth/menu-tree.util';
 
 @Injectable()
 export class MenuService {
@@ -48,7 +49,7 @@ export class MenuService {
     });
 
     // 构建树形结构
-    return this.buildTree(menus);
+    return buildMenuTree(menus);
   }
 
   async findOne(id: string) {
@@ -120,7 +121,7 @@ export class MenuService {
       }
     }
 
-    const updateData: Record<string, any> = {};
+    const updateData: Record<string, unknown> = {};
     if (dto.parentId !== undefined) updateData.parentId = dto.parentId || null;
     if (dto.name !== undefined) updateData.name = dto.name;
     if (dto.type !== undefined) updateData.type = dto.type;
@@ -165,37 +166,5 @@ export class MenuService {
       .update(sysMenu)
       .set({ deletedAt: new Date() })
       .where(eq(sysMenu.id, id));
-  }
-
-  private buildTree(menus: any[]) {
-    const map = new Map<string, any>();
-    const roots: any[] = [];
-
-    menus.forEach((m) => {
-      map.set(m.id, { ...m, children: [] });
-    });
-
-    menus.forEach((m) => {
-      const node = map.get(m.id)!;
-      if (m.parentId && map.has(m.parentId)) {
-        map.get(m.parentId)!.children.push(node);
-      } else {
-        roots.push(node);
-      }
-    });
-
-    // 清理空 children
-    const clean = (nodes: any[]) => {
-      nodes.forEach((n) => {
-        if (n.children.length === 0) {
-          delete n.children;
-        } else {
-          clean(n.children);
-        }
-      });
-    };
-    clean(roots);
-
-    return roots;
   }
 }

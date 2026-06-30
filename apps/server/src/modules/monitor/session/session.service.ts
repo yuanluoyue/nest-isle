@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { eq, and, isNull, ilike, desc, SQL } from 'drizzle-orm';
+import { eq, and, ilike, desc, SQL } from 'drizzle-orm';
 import { sysSession } from '../../../database/schema';
 import { DatabaseService } from '../../../database/database.service';
 import { CacheService } from '../../../core/cache/cache.service';
@@ -7,6 +7,14 @@ import { QuerySessionDto } from './dto/query-session.dto';
 import { UAParser } from 'ua-parser-js';
 
 const SESSION_PREFIX = 'session:';
+
+interface CachedSession {
+  sid: string;
+  userId: string;
+  userType: string;
+  lastActiveAt?: number;
+  [key: string]: unknown;
+}
 
 @Injectable()
 export class SessionService {
@@ -86,7 +94,7 @@ export class SessionService {
     if (!data) return null;
 
     try {
-      const session = JSON.parse(data);
+      const session = JSON.parse(data) as CachedSession;
       // 更新最后活跃时间
       session.lastActiveAt = Math.floor(Date.now() / 1000);
       await this.cacheService.set(

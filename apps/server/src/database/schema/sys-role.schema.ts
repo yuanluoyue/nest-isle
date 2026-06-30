@@ -4,7 +4,6 @@ import {
   varchar,
   timestamp,
   integer,
-  text,
 } from 'drizzle-orm/pg-core';
 
 export const sysRole = pgTable('sys_role', {

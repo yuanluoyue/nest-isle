@@ -4,7 +4,6 @@ import {
   varchar,
   timestamp,
   integer,
-  text,
 } from 'drizzle-orm/pg-core';
 
 export const sysMenu = pgTable('sys_menu', {

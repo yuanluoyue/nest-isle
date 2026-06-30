@@ -5,8 +5,8 @@ import {
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
-import { eq, like, and, isNull, ilike } from 'drizzle-orm';
-import { sysUser, sysUserRole, sysRole } from '../../../database/schema';
+import { eq, and, isNull, ilike } from 'drizzle-orm';
+import { sysUser, sysUserRole } from '../../../database/schema';
 import { DatabaseService } from '../../../database/database.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -179,7 +179,7 @@ export class UserService {
       throw new NotFoundException('用户不存在');
     }
 
-    const updateData: Record<string, any> = {};
+    const updateData: Record<string, unknown> = {};
     if (dto.username !== undefined) updateData.username = dto.username;
     if (dto.nickname !== undefined) updateData.nickname = dto.nickname;
     if (dto.email !== undefined) updateData.email = dto.email;
