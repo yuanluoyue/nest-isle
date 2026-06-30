@@ -40,7 +40,9 @@ async function bootstrap() {
 
   const appConfig = app.get(ConfigService);
   const appName = appConfig.get<string>('appName') ?? 'NestIsle';
-  const appTitle = appName.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  const appTitle = appName
+    .replace(/-/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 
   const config = new DocumentBuilder()
     .setTitle(`${appTitle} API`)

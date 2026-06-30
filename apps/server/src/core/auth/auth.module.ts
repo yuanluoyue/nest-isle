@@ -24,7 +24,7 @@ import configuration from '../../config/configuration';
           expiresIn: configService.get(
             'jwt.expiresIn',
             configuration().jwt.expiresIn,
-          ) as any,
+          ),
         },
       }),
     }),

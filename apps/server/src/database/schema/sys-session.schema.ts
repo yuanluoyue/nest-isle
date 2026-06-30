@@ -1,17 +1,13 @@
-import {
-  pgTable,
-  uuid,
-  varchar,
-  text,
-  timestamp,
-} from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, text, timestamp } from 'drizzle-orm/pg-core';
 
 export const sysSession = pgTable('sys_session', {
   id: uuid('id').defaultRandom().primaryKey(),
 
   sid: varchar('sid', {
     length: 64,
-  }).notNull().unique(),
+  })
+    .notNull()
+    .unique(),
 
   userId: uuid('user_id').notNull(),
 

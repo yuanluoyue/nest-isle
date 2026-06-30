@@ -57,7 +57,9 @@ export class FormController {
     }
 
     // 从数据库获取 prompt 模板
-    const promptTemplate = await this.promptService.findByCode('form_schema_generator');
+    const promptTemplate = await this.promptService.findByCode(
+      'form_schema_generator',
+    );
 
     const messages: ChatCompletionMessageParam[] = [
       {
@@ -85,7 +87,11 @@ export class FormController {
           targetModelName = defaultModel.name;
         }
       }
-      const result = await this.aiService.chat(targetModelName, messages, user?.id || '');
+      const result = await this.aiService.chat(
+        targetModelName,
+        messages,
+        user?.id || '',
+      );
 
       // 提取 JSON schema
       let schema = null;
@@ -96,7 +102,11 @@ export class FormController {
         schema = JSON.parse(jsonStr);
       } catch {
         // JSON 解析失败，返回原始文本
-        return { schema: null, rawContent: result, error: 'AI 返回的内容不是有效的 JSON' };
+        return {
+          schema: null,
+          rawContent: result,
+          error: 'AI 返回的内容不是有效的 JSON',
+        };
       }
 
       return { schema, rawContent: result };

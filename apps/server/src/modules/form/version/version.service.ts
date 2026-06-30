@@ -38,7 +38,10 @@ export class VersionService {
         },
         orderBy: [desc(sysFormVersion.version)],
       }),
-      this.db.select({ id: sysFormVersion.id }).from(sysFormVersion).where(where),
+      this.db
+        .select({ id: sysFormVersion.id })
+        .from(sysFormVersion)
+        .where(where),
     ]);
 
     return {

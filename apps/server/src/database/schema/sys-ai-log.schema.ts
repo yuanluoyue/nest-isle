@@ -1,10 +1,4 @@
-import {
-  pgTable,
-  uuid,
-  integer,
-  text,
-  timestamp,
-} from 'drizzle-orm/pg-core';
+import { pgTable, uuid, integer, text, timestamp } from 'drizzle-orm/pg-core';
 
 export const sysAiLog = pgTable('sys_ai_log', {
   id: uuid('id').defaultRandom().primaryKey(),

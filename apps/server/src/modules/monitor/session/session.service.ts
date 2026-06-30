@@ -79,7 +79,9 @@ export class SessionService {
   }
 
   /** 验证 session 是否有效（鉴权时调用） */
-  async validate(sid: string): Promise<{ userId: string; userType: string } | null> {
+  async validate(
+    sid: string,
+  ): Promise<{ userId: string; userType: string } | null> {
     const data = await this.cacheService.get(`${SESSION_PREFIX}${sid}`);
     if (!data) return null;
 
@@ -144,7 +146,9 @@ export class SessionService {
     // 检查 Redis 判断在线状态
     const enriched = await Promise.all(
       sessions.map(async (s) => {
-        const online = !!(await this.cacheService.get(`${SESSION_PREFIX}${s.sid}`));
+        const online = !!(await this.cacheService.get(
+          `${SESSION_PREFIX}${s.sid}`,
+        ));
         return { ...s, online };
       }),
     );

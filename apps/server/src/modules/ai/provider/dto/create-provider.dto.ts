@@ -6,7 +6,10 @@ export class CreateProviderDto {
   @IsString()
   name: string;
 
-  @ApiProperty({ description: '类型', enum: ['openai', 'anthropic', 'gemini', 'deepseek'] })
+  @ApiProperty({
+    description: '类型',
+    enum: ['openai', 'anthropic', 'gemini', 'deepseek'],
+  })
   @IsString()
   @IsIn(['openai', 'anthropic', 'gemini', 'deepseek'])
   type: string;

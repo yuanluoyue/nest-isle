@@ -4,7 +4,11 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { eq, and, ilike, SQL } from 'drizzle-orm';
-import { sysFormDatasource, sysDictType, sysDictItem } from '../../../database/schema';
+import {
+  sysFormDatasource,
+  sysDictType,
+  sysDictItem,
+} from '../../../database/schema';
 import { DatabaseService } from '../../../database/database.service';
 import { CreateDatasourceDto } from './dto/create-datasource.dto';
 import { UpdateDatasourceDto } from './dto/update-datasource.dto';
@@ -86,7 +90,10 @@ export class DatasourceService {
         if (Array.isArray(options)) {
           return options.map((opt: any) => {
             if (typeof opt === 'object') {
-              return { label: opt.label || opt.name, value: opt.value || opt.id };
+              return {
+                label: opt.label || opt.name,
+                value: opt.value || opt.id,
+              };
             }
             return { label: String(opt), value: String(opt) };
           });
@@ -96,7 +103,13 @@ export class DatasourceService {
 
       case 'api': {
         // 从外部 API 加载，config 中存 url、method、labelField、valueField
-        const { url, method = 'GET', labelField = 'label', valueField = 'value', headers } = config || {};
+        const {
+          url,
+          method = 'GET',
+          labelField = 'label',
+          valueField = 'value',
+          headers,
+        } = config || {};
         if (!url) return [];
 
         try {
@@ -105,7 +118,9 @@ export class DatasourceService {
             headers: headers || {},
           });
           const data = await response.json();
-          const list = Array.isArray(data) ? data : (data.data || data.list || []);
+          const list = Array.isArray(data)
+            ? data
+            : data.data || data.list || [];
 
           return list.map((item: any) => ({
             label: item[labelField],
@@ -137,7 +152,10 @@ export class DatasourceService {
         limit: pageSize,
         offset,
       }),
-      this.db.select({ id: sysFormDatasource.id }).from(sysFormDatasource).where(where),
+      this.db
+        .select({ id: sysFormDatasource.id })
+        .from(sysFormDatasource)
+        .where(where),
     ]);
 
     return {

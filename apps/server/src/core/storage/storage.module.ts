@@ -17,7 +17,10 @@ import type { StorageConfig } from './storage.adapter';
           secretKey: configService.get<string>('minio.secretKey', 'minioadmin'),
           useSSL: configService.get<boolean>('minio.useSSL', false),
           bucket: configService.get<string>('minio.bucket')!,
-          publicUrl: configService.get<string>('minio.publicUrl', 'http://localhost:9000'),
+          publicUrl: configService.get<string>(
+            'minio.publicUrl',
+            'http://localhost:9000',
+          ),
         };
         return new MinioAdapter(config);
       },

@@ -41,8 +41,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     // 加载用户权限（实时查询，权限变更即时生效）
-    const permissions = await this.permissionService.getPermissions(payload.sub);
+    const permissions = await this.permissionService.getPermissions(
+      payload.sub,
+    );
 
-    return { id: payload.sub, sid: payload.sid, type: payload.type, permissions };
+    return {
+      id: payload.sub,
+      sid: payload.sid,
+      type: payload.type,
+      permissions,
+    };
   }
 }

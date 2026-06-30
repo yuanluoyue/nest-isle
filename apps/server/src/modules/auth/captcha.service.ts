@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import * as svgCaptcha from 'svg-captcha';
 import { randomUUID } from 'crypto';
 
@@ -8,12 +8,20 @@ interface CaptchaEntry {
 }
 
 @Injectable()
-export class CaptchaService {
+export class CaptchaService implements OnModuleDestroy {
   private readonly captchas = new Map<string, CaptchaEntry>();
+  private readonly cleanupTimer: NodeJS.Timeout;
 
   constructor() {
     // 每分钟清理过期验证码
-    setInterval(() => this.cleanup(), 60_000);
+    this.cleanupTimer = setInterval(() => this.cleanup(), 60_000);
+    // setInterval 在 Node 中会阻止进程退出，unref 让其在没有其他任务时退出
+    this.cleanupTimer.unref?.();
+  }
+
+  onModuleDestroy() {
+    clearInterval(this.cleanupTimer);
+    this.captchas.clear();
   }
 
   generate() {

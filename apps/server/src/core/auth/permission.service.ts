@@ -48,8 +48,6 @@ export class PermissionService {
       },
     });
 
-    return menus
-      .map((m) => m.permission)
-      .filter((p): p is string => !!p);
+    return menus.map((m) => m.permission).filter((p): p is string => !!p);
   }
 }

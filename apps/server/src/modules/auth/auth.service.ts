@@ -20,6 +20,7 @@ import { CaptchaService } from './captcha.service';
 import { FileService } from '../file/file.service';
 import { LoginLogService } from '../monitor/login-log/login-log.service';
 import { SessionService } from '../monitor/session/session.service';
+import { buildMenuTree } from './menu-tree.util';
 
 export interface LoginContext {
   ip?: string | null;
@@ -218,15 +219,15 @@ export class AuthService {
       configuration().jwt.expiresIn,
     );
 
-    const accessToken = this.jwtService.sign(
-      { sub: userId, sid, type },
-      { secret, expiresIn } as any,
-    );
+    const accessToken = this.jwtService.sign({ sub: userId, sid, type }, {
+      secret,
+      expiresIn,
+    } as any);
 
-    const refreshToken = this.jwtService.sign(
-      { sub: userId, sid, type },
-      { secret, expiresIn: '30d' } as any,
-    );
+    const refreshToken = this.jwtService.sign({ sub: userId, sid, type }, {
+      secret,
+      expiresIn: '30d',
+    } as any);
 
     return { accessToken, refreshToken };
   }
@@ -277,37 +278,6 @@ export class AuthService {
       orderBy: asc(sysMenu.sort),
     });
 
-    return this.buildTree(menus);
-  }
-
-  private buildTree(menus: any[]) {
-    const map = new Map<string, any>();
-    const roots: any[] = [];
-
-    menus.forEach((m) => {
-      map.set(m.id, { ...m, children: [] });
-    });
-
-    menus.forEach((m) => {
-      const node = map.get(m.id)!;
-      if (m.parentId && map.has(m.parentId)) {
-        map.get(m.parentId)!.children.push(node);
-      } else {
-        roots.push(node);
-      }
-    });
-
-    const clean = (nodes: any[]) => {
-      nodes.forEach((n) => {
-        if (n.children.length === 0) {
-          delete n.children;
-        } else {
-          clean(n.children);
-        }
-      });
-    };
-    clean(roots);
-
-    return roots;
+    return buildMenuTree(menus);
   }
 }

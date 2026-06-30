@@ -1,10 +1,4 @@
-import {
-  pgTable,
-  uuid,
-  varchar,
-  text,
-  integer,
-} from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, text, integer } from 'drizzle-orm/pg-core';
 
 export const sysAiPrompt = pgTable('sys_ai_prompt', {
   id: uuid('id').defaultRandom().primaryKey(),

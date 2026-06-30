@@ -1,9 +1,4 @@
-import {
-  pgTable,
-  uuid,
-  varchar,
-  integer,
-} from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, integer } from 'drizzle-orm/pg-core';
 
 export const sysAiModel = pgTable('sys_ai_model', {
   id: uuid('id').defaultRandom().primaryKey(),

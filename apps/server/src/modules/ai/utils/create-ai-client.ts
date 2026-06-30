@@ -14,7 +14,8 @@ const DEFAULT_BASE_URLS: Record<string, string> = {
 };
 
 export function createAiClient(provider: ProviderConfig): OpenAI {
-  const baseURL = provider.baseUrl || DEFAULT_BASE_URLS[provider.type] || undefined;
+  const baseURL =
+    provider.baseUrl || DEFAULT_BASE_URLS[provider.type] || undefined;
 
   return new OpenAI({
     apiKey: provider.apiKey || undefined,

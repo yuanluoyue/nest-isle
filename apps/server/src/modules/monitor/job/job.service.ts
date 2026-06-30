@@ -128,8 +128,8 @@ export class JobService {
       this.stopCronJob(id);
 
       // 如果新状态为运行，重新启动
-      if (updated!.status === 1) {
-        this.startCronJob(updated!.id, updated!.cron!, updated!.handler!);
+      if (updated.status === 1) {
+        this.startCronJob(updated.id, updated.cron!, updated.handler!);
       }
     }
 
@@ -219,7 +219,9 @@ export class JobService {
       job.start();
       this.logger.log(`Started cron job: ${jobName} [${cron}]`);
     } catch (error) {
-      this.logger.error(`Failed to start cron job ${jobName}: ${(error as Error).message}`);
+      this.logger.error(
+        `Failed to start cron job ${jobName}: ${(error as Error).message}`,
+      );
     }
   }
 
@@ -239,15 +241,39 @@ export class JobService {
 
     if (!handler) {
       this.logger.warn(`Handler not found: ${handlerName}`);
-      await this.writeLog(jobId, handlerName, 1, null, `Handler not found: ${handlerName}`, startedAt, new Date());
+      await this.writeLog(
+        jobId,
+        handlerName,
+        1,
+        null,
+        `Handler not found: ${handlerName}`,
+        startedAt,
+        new Date(),
+      );
       return;
     }
 
     try {
       const result = await handler.execute();
-      await this.writeLog(jobId, handlerName, 0, result, null, startedAt, new Date());
+      await this.writeLog(
+        jobId,
+        handlerName,
+        0,
+        result,
+        null,
+        startedAt,
+        new Date(),
+      );
     } catch (error) {
-      await this.writeLog(jobId, handlerName, 1, null, (error as Error).message, startedAt, new Date());
+      await this.writeLog(
+        jobId,
+        handlerName,
+        1,
+        null,
+        (error as Error).message,
+        startedAt,
+        new Date(),
+      );
     }
   }
 

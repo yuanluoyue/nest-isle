@@ -8,7 +8,13 @@ import { FormService } from './form.service';
 import { FormController } from './form.controller';
 
 @Module({
-  imports: [CoreAuthModule, DatabaseModule, AiModule, PromptModule, ModelModule],
+  imports: [
+    CoreAuthModule,
+    DatabaseModule,
+    AiModule,
+    PromptModule,
+    ModelModule,
+  ],
   controllers: [FormController],
   providers: [FormService],
   exports: [FormService],

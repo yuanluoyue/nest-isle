@@ -70,14 +70,22 @@ export class ConfigService {
 
     // 查数据库
     const config = await this.db.query.sysConfig.findFirst({
-      where: and(eq(sysConfig.key, key), eq(sysConfig.status, 0), isNull(sysConfig.deletedAt)),
+      where: and(
+        eq(sysConfig.key, key),
+        eq(sysConfig.status, 0),
+        isNull(sysConfig.deletedAt),
+      ),
     });
     if (!config) {
       return null;
     }
 
     // 写入缓存
-    await this.cacheService.set(`${CACHE_PREFIX}${key}`, config.value, CACHE_TTL);
+    await this.cacheService.set(
+      `${CACHE_PREFIX}${key}`,
+      config.value,
+      CACHE_TTL,
+    );
     return config.value;
   }
 
@@ -95,7 +103,11 @@ export class ConfigService {
       .returning();
 
     // 写入缓存
-    await this.cacheService.set(`${CACHE_PREFIX}${dto.key}`, dto.value, CACHE_TTL);
+    await this.cacheService.set(
+      `${CACHE_PREFIX}${dto.key}`,
+      dto.value,
+      CACHE_TTL,
+    );
 
     return created;
   }
@@ -120,7 +132,11 @@ export class ConfigService {
     // 删除旧缓存，写入新缓存
     await this.cacheService.del(`${CACHE_PREFIX}${existing.key}`);
     if (updated.status === 0) {
-      await this.cacheService.set(`${CACHE_PREFIX}${updated.key}`, updated.value, CACHE_TTL);
+      await this.cacheService.set(
+        `${CACHE_PREFIX}${updated.key}`,
+        updated.value,
+        CACHE_TTL,
+      );
     }
 
     return updated;
@@ -149,7 +165,11 @@ export class ConfigService {
 
     // 批量写入缓存
     for (const config of configs) {
-      await this.cacheService.set(`${CACHE_PREFIX}${config.key}`, config.value, CACHE_TTL);
+      await this.cacheService.set(
+        `${CACHE_PREFIX}${config.key}`,
+        config.value,
+        CACHE_TTL,
+      );
     }
 
     return { count: configs.length };

@@ -4,7 +4,9 @@ import DailyRotateFile from 'winston-daily-rotate-file';
 import * as path from 'path';
 
 const APP_NAME = process.env.APP_NAME ?? 'nest-isle';
-const APP_LABEL = APP_NAME.replace(/-/g, '').replace(/\b\w/g, (c, i) => i === 0 ? c.toUpperCase() : c);
+const APP_LABEL = APP_NAME.replace(/-/g, '').replace(/\b\w/g, (c, i) =>
+  i === 0 ? c.toUpperCase() : c,
+);
 
 const logsDir = path.join(process.cwd(), 'logs');
 

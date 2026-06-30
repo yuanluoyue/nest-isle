@@ -157,14 +157,17 @@ export class FormService {
     const versions = await this.db.query.sysFormVersion.findMany({
       where: eq(sysFormVersion.formId, id),
     });
-    const maxVersion = versions.length > 0 ? Math.max(...versions.map((v) => v.version)) : 0;
+    const maxVersion =
+      versions.length > 0 ? Math.max(...versions.map((v) => v.version)) : 0;
     const newVersion = maxVersion + 1;
 
     // 将之前的发布版本取消发布
     await this.db
       .update(sysFormVersion)
       .set({ isPublished: 0 })
-      .where(and(eq(sysFormVersion.formId, id), eq(sysFormVersion.isPublished, 1)));
+      .where(
+        and(eq(sysFormVersion.formId, id), eq(sysFormVersion.isPublished, 1)),
+      );
 
     // 创建新版本
     await this.db.insert(sysFormVersion).values({
@@ -200,7 +203,9 @@ export class FormService {
     await this.db
       .update(sysFormVersion)
       .set({ isPublished: 0 })
-      .where(and(eq(sysFormVersion.formId, id), eq(sysFormVersion.isPublished, 1)));
+      .where(
+        and(eq(sysFormVersion.formId, id), eq(sysFormVersion.isPublished, 1)),
+      );
 
     const [updated] = await this.db
       .update(sysForm)
@@ -213,7 +218,11 @@ export class FormService {
 
   async getPublishedSchema(code: string) {
     const form = await this.db.query.sysForm.findFirst({
-      where: and(eq(sysForm.code, code), eq(sysForm.status, 1), isNull(sysForm.deletedAt)),
+      where: and(
+        eq(sysForm.code, code),
+        eq(sysForm.status, 1),
+        isNull(sysForm.deletedAt),
+      ),
     });
 
     if (!form) {
