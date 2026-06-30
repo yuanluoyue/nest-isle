@@ -13,11 +13,7 @@ interface MiddieResponse {
 
 @Injectable()
 export class TraceIdMiddleware implements NestMiddleware {
-  use(
-    req: AuthenticatedRequest,
-    res: MiddieResponse,
-    next: () => void,
-  ) {
+  use(req: AuthenticatedRequest, res: MiddieResponse, next: () => void) {
     const headerValue = req.headers?.['x-trace-id'];
     const traceId =
       (Array.isArray(headerValue) ? headerValue[0] : headerValue) ||
