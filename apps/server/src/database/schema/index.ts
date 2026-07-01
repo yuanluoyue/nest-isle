@@ -21,4 +21,5 @@ export * from './sys-ai-prompt.schema';
 export * from './sys-ai-log.schema';
 export * from './sys-form.schema';
 export * from './sys-notification.schema';
+export * from './sys-search.schema';
 export * from './relations';

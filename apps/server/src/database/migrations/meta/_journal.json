@@ -15,6 +15,13 @@
       "when": 1782888552944,
       "tag": "0001_fearless_emma_frost",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782920240019,
+      "tag": "0002_flawless_amphibian",
+      "breakpoints": true
     }
   ]
 }

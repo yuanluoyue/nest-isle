@@ -16,6 +16,7 @@ import { sysFormRecord } from './sys-form.schema';
 import { sysFormVersion } from './sys-form.schema';
 import { sysNotification } from './sys-notification.schema';
 import { sysNotificationReceiver } from './sys-notification.schema';
+import { sysSearchHistory } from './sys-search.schema';
 import { sysUser } from './sys-user.schema';
 
 export const sysUserRelations = relations(sysUser, ({ many, one }) => ({
@@ -25,6 +26,7 @@ export const sysUserRelations = relations(sysUser, ({ many, one }) => ({
     references: [sysDept.id],
   }),
   notificationReceivers: many(sysNotificationReceiver),
+  searchHistories: many(sysSearchHistory),
 }));
 
 export const sysRoleRelations = relations(sysRole, ({ many }) => ({
@@ -147,3 +149,10 @@ export const sysNotificationReceiverRelations = relations(
     }),
   }),
 );
+
+export const sysSearchHistoryRelations = relations(sysSearchHistory, ({ one }) => ({
+  user: one(sysUser, {
+    fields: [sysSearchHistory.userId],
+    references: [sysUser.id],
+  }),
+}));

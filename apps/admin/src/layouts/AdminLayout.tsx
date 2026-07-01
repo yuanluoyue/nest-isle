@@ -25,6 +25,7 @@ import {
   CheckOutlined,
   SunOutlined,
   MoonOutlined,
+  SearchOutlined,
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/auth';
@@ -37,6 +38,7 @@ import { logout as logoutApi } from '../api/auth';
 import { getNotificationDetail, markAsRead } from '../api/notification';
 import SideMenu from '../components/SideMenu';
 import AccountSwitcher from '../components/AccountSwitcher';
+import SearchModal from '../components/SearchModal';
 import type { MenuItem, NotificationReceiverItem } from '../types/api';
 
 const { Header, Content } = Layout;
@@ -109,6 +111,7 @@ const typeMap: Record<string, { color: string; text: string }> = {
 
 const AdminLayout = () => {
   const [accountSwitcherOpen, setAccountSwitcherOpen] = useState(false);
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { token: themeToken } = theme.useToken();
@@ -308,6 +311,14 @@ const AdminLayout = () => {
             />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <Tooltip title="全局搜索">
+              <div
+                style={{ cursor: 'pointer', fontSize: 18 }}
+                onClick={() => setSearchModalOpen(true)}
+              >
+                <SearchOutlined />
+              </div>
+            </Tooltip>
             <Popover
               content={notificationContent}
               title="通知"
@@ -408,6 +419,9 @@ const AdminLayout = () => {
           </div>
         )}
       </Drawer>
+
+      {/* 全局搜索弹窗 */}
+      <SearchModal open={searchModalOpen} onClose={() => setSearchModalOpen(false)} />
     </Layout>
   );
 };

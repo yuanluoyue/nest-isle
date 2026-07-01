@@ -927,3 +927,22 @@ export interface QueryNotificationParams {
   status?: string;
   type?: string;
 }
+
+// ============ 全局搜索 ============
+
+export interface SearchItem {
+  id: string;
+  provider: string;
+  title: string;
+  subtitle?: string;
+  description?: string;
+  icon?: string;
+  url: string;
+  score?: number;
+}
+
+export interface SearchHistoryItem {
+  id: string;
+  keyword: string;
+  createdAt: string;
+}
