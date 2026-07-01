@@ -9,3 +9,27 @@ html, body, #root {
   height: 100%;
   overflow: hidden;
 }
+
+/* 侧边菜单滚动区域 */
+.side-menu-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+}
+
+/* 细滚动条 - webkit */
+.side-menu-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.side-menu-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.side-menu-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+
+.side-menu-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}

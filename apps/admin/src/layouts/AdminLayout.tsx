@@ -13,6 +13,7 @@ import {
   Tag,
   Drawer,
   Button,
+  Tooltip,
 } from 'antd';
 import {
   UserOutlined,
@@ -22,10 +23,13 @@ import {
   SwapOutlined,
   BellOutlined,
   CheckOutlined,
+  SunOutlined,
+  MoonOutlined,
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/auth';
 import { useMenuStore } from '../stores/menu';
+import { useSettingsStore } from '../stores/settings';
 import { useNotificationStore } from '../stores/notification';
 import { useProfile } from '../hooks/useProfile';
 import { useNotificationSocket } from '../hooks/useNotificationSocket';
@@ -104,7 +108,6 @@ const typeMap: Record<string, { color: string; text: string }> = {
 };
 
 const AdminLayout = () => {
-  const [collapsed, setCollapsed] = useState(false);
   const [accountSwitcherOpen, setAccountSwitcherOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -112,6 +115,7 @@ const AdminLayout = () => {
   const { clearAuth } = useAuthStore();
   const { menus } = useMenuStore();
   const user = useProfile();
+  const { menuCollapsed, toggleMenuCollapsed, themeMode, toggleThemeMode } = useSettingsStore();
   const { unreadCount, latestNotifications, fetchUnreadCount, setLatestNotifications } =
     useNotificationStore();
 
@@ -274,7 +278,7 @@ const AdminLayout = () => {
 
   return (
     <Layout style={{ height: '100vh' }}>
-      <SideMenu collapsed={collapsed} />
+      <SideMenu />
       <Layout>
         <Header
           style={{
@@ -289,9 +293,9 @@ const AdminLayout = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div
               style={{ cursor: 'pointer', fontSize: 18, marginRight: 12 }}
-              onClick={() => setCollapsed(!collapsed)}
+              onClick={toggleMenuCollapsed}
             >
-              {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              {menuCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
             </div>
             <Breadcrumb
               items={breadcrumbItems.map((item, index) => ({
@@ -316,6 +320,11 @@ const AdminLayout = () => {
                 <BellOutlined style={{ fontSize: 18, cursor: 'pointer' }} />
               </Badge>
             </Popover>
+            <Tooltip title={themeMode === 'dark' ? '切换亮色模式' : '切换暗色模式'}>
+              <div style={{ cursor: 'pointer', fontSize: 18 }} onClick={toggleThemeMode}>
+                {themeMode === 'dark' ? <SunOutlined /> : <MoonOutlined />}
+              </div>
+            </Tooltip>
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
               <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Avatar src={user?.avatar} icon={!user?.avatar ? <UserOutlined /> : undefined} />
@@ -373,7 +382,7 @@ const AdminLayout = () => {
             </div>
             <div
               style={{
-                background: '#fafafa',
+                background: themeToken.colorFillQuaternary,
                 padding: 16,
                 borderRadius: 8,
                 whiteSpace: 'pre-wrap',
@@ -383,7 +392,7 @@ const AdminLayout = () => {
             >
               {detail.notification.content}
             </div>
-            {/* {detail.notification.link && (
+            {detail.notification.link && (
               <div>
                 <Typography.Text type="secondary">相关链接：</Typography.Text>
                 <Typography.Link
@@ -395,7 +404,7 @@ const AdminLayout = () => {
                   {detail.notification.link}
                 </Typography.Link>
               </div>
-            )} */}
+            )}
           </div>
         )}
       </Drawer>
