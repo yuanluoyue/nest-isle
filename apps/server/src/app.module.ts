@@ -18,6 +18,7 @@ import { FileModule } from './modules/file/file.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { AiModule } from './modules/ai/ai.module';
 import { FormFeatureModule } from './modules/form/form.module';
+import { NotificationModule } from './modules/notification/notification.module';
 import { TraceIdMiddleware } from './common/middleware/trace-id.middleware';
 
 @Module({
@@ -41,6 +42,7 @@ import { TraceIdMiddleware } from './common/middleware/trace-id.middleware';
     DashboardModule,
     AiModule,
     FormFeatureModule,
+    NotificationModule,
   ],
   providers: [
     // 顺序很重要：先认证（JwtAuthGuard），后授权（PermissionsGuard）

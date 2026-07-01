@@ -889,3 +889,41 @@ export interface QueryFormVersionParams {
   pageSize?: number;
   formId?: string;
 }
+
+// ============ 站内信 ============
+
+export interface NotificationItem {
+  id: string;
+  type: string | null; // announcement | role_change
+  title: string | null;
+  content: string | null;
+  link: string | null;
+  payload: Record<string, unknown> | null;
+  priority: number | null; // 0=普通 1=重要 2=紧急
+  createdBy: string | null;
+  createdAt: string | null;
+}
+
+export interface NotificationReceiverItem {
+  id: string;
+  notificationId: string | null;
+  receiverId: string | null;
+  status: string | null; // unread | read
+  readAt: string | null;
+  createdAt: string | null;
+  notification?: NotificationItem | null;
+}
+
+export interface NotificationListResult {
+  list: NotificationReceiverItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface QueryNotificationParams {
+  page?: number;
+  pageSize?: number;
+  status?: string;
+  type?: string;
+}

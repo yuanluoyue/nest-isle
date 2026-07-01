@@ -5,9 +5,10 @@ import {
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
-import { eq, and, isNull, ilike } from 'drizzle-orm';
-import { sysUser, sysUserRole } from '../../../database/schema';
+import { eq, and, isNull, ilike, inArray } from 'drizzle-orm';
+import { sysUser, sysUserRole, sysRole } from '../../../database/schema';
 import { DatabaseService } from '../../../database/database.service';
+import { EventService } from '../../../core/event/event.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { QueryUserDto } from './dto/query-user.dto';
@@ -16,7 +17,10 @@ import { hashSync, compareSync } from 'bcryptjs';
 
 @Injectable()
 export class UserService {
-  constructor(private databaseService: DatabaseService) {}
+  constructor(
+    private databaseService: DatabaseService,
+    private eventService: EventService,
+  ) {}
 
   private get db() {
     return this.databaseService.db;
@@ -280,6 +284,27 @@ export class UserService {
         .insert(sysUserRole)
         .values(roleIds.map((roleId) => ({ userId, roleId })));
     }
+
+    // 查询分配的角色名称
+    let roleNames = '无';
+    if (roleIds.length > 0) {
+      const assignedRoles = await this.db
+        .select({ name: sysRole.name })
+        .from(sysRole)
+        .where(and(isNull(sysRole.deletedAt), inArray(sysRole.id, roleIds)));
+      roleNames = assignedRoles.map((r) => r.name).join('、') || '无';
+    }
+
+    // 发送角色变更站内信
+    this.eventService.emitNotification({
+      type: 'role_change',
+      title: '角色变更通知',
+      content: `您的角色已变更为：${roleNames}`,
+      link: '/profile',
+      payload: { roleIds },
+      priority: 1,
+      receiverIds: [userId],
+    });
 
     return this.findOne(userId);
   }

@@ -1,7 +1,10 @@
-import { Module } from '@nestjs/common';
+import { Module, Global } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { QueueService } from './queue.service';
 
+@Global()
 @Module({
-  providers: [],
-  exports: [],
+  providers: [QueueService],
+  exports: [QueueService],
 })
 export class QueueModule {}

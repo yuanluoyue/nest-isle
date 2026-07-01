@@ -37,6 +37,7 @@ const FormRecordPage = React.lazy(() => import('../pages/form/record'));
 const FormDatasourcePage = React.lazy(() => import('../pages/form/datasource'));
 const FormFillPage = React.lazy(() => import('../pages/form/fill'));
 const ProfilePage = React.lazy(() => import('../pages/profile'));
+const NotificationPage = React.lazy(() => import('../pages/notification'));
 const ForbiddenPage = React.lazy(() => import('../pages/403'));
 const NotFoundPage = React.lazy(() => import('../pages/404'));
 
@@ -58,6 +59,7 @@ export const routeObjects: RouteObject[] = [
       { index: true, element: <Navigate to="/dashboard" replace /> },
       { path: 'dashboard', element: LazyLoad(DashboardPage) },
       { path: 'profile', element: LazyLoad(ProfilePage) },
+      { path: 'notification', element: LazyLoad(NotificationPage) },
       { path: '403', element: LazyLoad(ForbiddenPage) },
       {
         path: 'system',

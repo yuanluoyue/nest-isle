@@ -14,6 +14,9 @@ import { sysAiLog } from './sys-ai-log.schema';
 import { sysForm } from './sys-form.schema';
 import { sysFormRecord } from './sys-form.schema';
 import { sysFormVersion } from './sys-form.schema';
+import { sysNotification } from './sys-notification.schema';
+import { sysNotificationReceiver } from './sys-notification.schema';
+import { sysUser } from './sys-user.schema';
 
 export const sysUserRelations = relations(sysUser, ({ many, one }) => ({
   userRoles: many(sysUserRole),
@@ -21,6 +24,7 @@ export const sysUserRelations = relations(sysUser, ({ many, one }) => ({
     fields: [sysUser.deptId],
     references: [sysDept.id],
   }),
+  notificationReceivers: many(sysNotificationReceiver),
 }));
 
 export const sysRoleRelations = relations(sysRole, ({ many }) => ({
@@ -122,3 +126,24 @@ export const sysFormVersionRelations = relations(sysFormVersion, ({ one }) => ({
     references: [sysForm.id],
   }),
 }));
+
+export const sysNotificationRelations = relations(
+  sysNotification,
+  ({ many }) => ({
+    receivers: many(sysNotificationReceiver),
+  }),
+);
+
+export const sysNotificationReceiverRelations = relations(
+  sysNotificationReceiver,
+  ({ one }) => ({
+    notification: one(sysNotification, {
+      fields: [sysNotificationReceiver.notificationId],
+      references: [sysNotification.id],
+    }),
+    receiver: one(sysUser, {
+      fields: [sysNotificationReceiver.receiverId],
+      references: [sysUser.id],
+    }),
+  }),
+);

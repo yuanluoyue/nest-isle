@@ -7,6 +7,7 @@ import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from '@nestjs/platform-fastify';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 import fastifyMultipart from '@fastify/multipart';
 import { AppModule } from './app.module';
 import { TransformInterceptor } from './common/interceptor/transform.interceptor';
@@ -30,6 +31,7 @@ async function bootstrap() {
   });
 
   app.enableCors();
+  app.useWebSocketAdapter(new IoAdapter(app));
   app.setGlobalPrefix('api');
   app.enableVersioning({
     type: VersioningType.URI,

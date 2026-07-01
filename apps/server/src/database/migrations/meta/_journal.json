@@ -8,6 +8,13 @@
       "when": 1782735412370,
       "tag": "0000_thick_pepper_potts",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1782888552944,
+      "tag": "0001_fearless_emma_frost",
+      "breakpoints": true
     }
   ]
 }

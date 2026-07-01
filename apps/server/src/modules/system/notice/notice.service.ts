@@ -1,14 +1,18 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { eq, and, isNull, ilike, desc, SQL } from 'drizzle-orm';
-import { sysNotice } from '../../../database/schema';
+import { sysNotice, sysUser } from '../../../database/schema';
 import { DatabaseService } from '../../../database/database.service';
+import { EventService } from '../../../core/event/event.service';
 import { CreateNoticeDto } from './dto/create-notice.dto';
 import { UpdateNoticeDto } from './dto/update-notice.dto';
 import { QueryNoticeDto } from './dto/query-notice.dto';
 
 @Injectable()
 export class NoticeService {
-  constructor(private databaseService: DatabaseService) {}
+  constructor(
+    private databaseService: DatabaseService,
+    private eventService: EventService,
+  ) {}
 
   private get db() {
     return this.databaseService.db;
@@ -67,6 +71,17 @@ export class NoticeService {
         createdBy,
       })
       .returning();
+
+    // 直接发布时，发送站内信通知所有用户
+    if (created.status === 1) {
+      await this.sendNoticeNotification(
+        created.id,
+        created.title,
+        created.summary ?? created.content,
+        createdBy,
+      );
+    }
+
     return created;
   }
 
@@ -92,6 +107,17 @@ export class NoticeService {
       .set(updateData)
       .where(eq(sysNotice.id, id))
       .returning();
+
+    // 从非发布状态变为发布状态时，发送站内信通知所有用户
+    if (dto.status === 1 && existing.status !== 1) {
+      await this.sendNoticeNotification(
+        updated.id,
+        updated.title,
+        updated.summary ?? updated.content,
+        updated.createdBy,
+      );
+    }
+
     return updated;
   }
 
@@ -101,5 +127,31 @@ export class NoticeService {
       .update(sysNotice)
       .set({ deletedAt: new Date() })
       .where(eq(sysNotice.id, id));
+  }
+
+  private async sendNoticeNotification(
+    noticeId: string,
+    title: string,
+    content: string,
+    createdBy: string | null,
+  ) {
+    // 查询所有活跃用户
+    const users = await this.db
+      .select({ id: sysUser.id })
+      .from(sysUser)
+      .where(isNull(sysUser.deletedAt));
+
+    if (users.length === 0) return;
+
+    this.eventService.emitNotification({
+      type: 'announcement',
+      title: `通知公告：${title}`,
+      content: content?.slice(0, 200) ?? '',
+      link: `/system/notice`,
+      payload: { noticeId },
+      priority: 0,
+      receiverIds: users.map((u) => u.id),
+      createdBy: createdBy ?? undefined,
+    });
   }
 }
