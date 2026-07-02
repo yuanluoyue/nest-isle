@@ -1,7 +1,7 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Queue, Worker, QueueEvents } from 'bullmq';
-import { LoggerService } from '../logger/logger.service';
+import { LoggerService } from '../observability/logger/logger.service';
 
 @Injectable()
 export class QueueService implements OnModuleDestroy {

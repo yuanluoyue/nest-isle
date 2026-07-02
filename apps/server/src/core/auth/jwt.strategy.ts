@@ -5,7 +5,8 @@ import { ConfigService } from '@nestjs/config';
 import { SessionService } from '../../modules/monitor/session/session.service';
 import { PermissionService } from './permission.service';
 import configuration from '../../config/configuration';
-import { LoggerService } from '../logger/logger.service';
+import { LoggerService } from '../observability/logger/logger.service';
+import { setUserId } from '../observability/context/async-context';
 
 export interface JwtPayload {
   sub: string;
@@ -65,6 +66,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       message: 'JWT verified',
       data: { userId: payload.sub },
     });
+
+    // 将 userId 写入请求上下文，后续日志自动携带
+    setUserId(payload.sub);
 
     return {
       id: payload.sub,

@@ -13,10 +13,14 @@ import { AppModule } from './app.module';
 import { TransformInterceptor } from './common/interceptor/transform.interceptor';
 import { OperateLogInterceptor } from './common/interceptor/operate-log.interceptor';
 import { DatabaseService } from './database/database.service';
-import { LoggerService } from './core/logger/logger.service';
-import { LoggerInterceptor } from './core/logger/logger.interceptor';
-import { LogExceptionFilter } from './core/logger/exception.filter';
-import { createWinstonConfig } from './core/logger/logger.factory';
+import { LoggerService } from './core/observability/logger/logger.service';
+import { LoggerInterceptor } from './core/observability/logger/logger.interceptor';
+import { LogExceptionFilter } from './core/observability/logger/logger.filter';
+import { createWinstonConfig } from './core/observability/logger/transport';
+import { MetricsInterceptor } from './core/observability/metrics/metrics.interceptor';
+import { MetricsService } from './core/observability/metrics/metrics.service';
+import { TraceInterceptor } from './core/observability/tracing/trace.interceptor';
+import { TraceService } from './core/observability/tracing/trace.service';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -52,6 +56,8 @@ async function bootstrap() {
 
   app.useGlobalInterceptors(
     new LoggerInterceptor(loggerService),
+    new MetricsInterceptor(app.get(MetricsService)),
+    new TraceInterceptor(app.get(TraceService)),
     new TransformInterceptor(),
     new OperateLogInterceptor(app.get(Reflector), app.get(DatabaseService), loggerService),
   );

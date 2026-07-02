@@ -33,5 +33,8 @@ export default () => {
       password: process.env.REDIS_PASSWORD ?? '',
       db: parseInt(process.env.REDIS_DB ?? '0', 10),
     },
+    metricsEnabled: process.env.METRICS_ENABLED === 'true',
+    tracingEnabled: process.env.TRACING_ENABLED === 'true',
+    otlpEndpoint: process.env.OTLP_ENDPOINT ?? 'http://localhost:4318',
   };
 };

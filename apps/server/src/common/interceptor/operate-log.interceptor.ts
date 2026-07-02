@@ -13,7 +13,7 @@ import {
 } from '../decorator/operate-log.decorator';
 import { DatabaseService } from '../../database/database.service';
 import { sysOperateLog } from '../../database/schema';
-import { LoggerService } from '../../core/logger/logger.service';
+import { LoggerService } from '../../core/observability/logger/logger.service';
 
 @Injectable()
 export class OperateLogInterceptor implements NestInterceptor {

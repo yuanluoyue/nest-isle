@@ -21,7 +21,7 @@ import { FileService } from '../file/file.service';
 import { LoginLogService } from '../monitor/login-log/login-log.service';
 import { SessionService } from '../monitor/session/session.service';
 import { buildMenuTree } from './menu-tree.util';
-import { LoggerService } from '../../core/logger/logger.service';
+import { LoggerService } from '../../core/observability/logger/logger.service';
 
 export interface LoginContext {
   ip?: string | null;

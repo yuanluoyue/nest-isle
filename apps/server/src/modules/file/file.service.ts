@@ -5,7 +5,7 @@ import { sysFile } from '../../database/schema';
 import { DatabaseService } from '../../database/database.service';
 import { StorageAdapter } from '../../core/storage/storage.adapter';
 import type { UploadedFile } from '../../types/uploaded-file';
-import { LoggerService } from '../../core/logger/logger.service';
+import { LoggerService } from '../../core/observability/logger/logger.service';
 
 @Injectable()
 export class FileService {

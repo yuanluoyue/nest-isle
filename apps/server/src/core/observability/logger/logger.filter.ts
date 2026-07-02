@@ -1,12 +1,14 @@
 import { Catch, ExceptionFilter, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 import { LoggerService } from './logger.service';
-import { getRequestContext } from './request-context';
+import { getContext } from '../context/async-context';
 
 @Catch()
 export class LogExceptionFilter implements ExceptionFilter {
-  private logger = this.loggerService.child('Exception');
+  private logger: LoggerService;
 
-  constructor(private loggerService: LoggerService) {}
+  constructor(loggerService: LoggerService) {
+    this.logger = loggerService.child('Exception');
+  }
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -24,26 +26,24 @@ export class LogExceptionFilter implements ExceptionFilter {
       message = exception.message;
     }
 
-    // 记录所有异常日志
+    const method = request.method ?? '';
+    const url = request.url ?? '';
+    const reqCtx = getContext();
+
     if (code >= 500) {
       this.logger.error(
         {
-          action: `${request.method} ${request.url}`,
-          message: `${request.method} ${request.url} ${code} - ${message}`,
-          data: {
-            code,
-            method: request.method,
-            url: request.url,
-            userId: request.user?.id,
-          },
+          action: `${method} ${url}`,
+          message: `${method} ${url} ${code} - ${message}`,
+          data: { code, method, url, userId: reqCtx.userId },
         },
         exception instanceof Error ? exception.stack : undefined,
       );
     } else {
       this.logger.warn({
-        action: `${request.method} ${request.url}`,
-        message: `${request.method} ${request.url} ${code} - ${message}`,
-        data: { code, userId: request.user?.id },
+        action: `${method} ${url}`,
+        message: `${method} ${url} ${code} - ${message}`,
+        data: { code, userId: reqCtx.userId },
       });
     }
 

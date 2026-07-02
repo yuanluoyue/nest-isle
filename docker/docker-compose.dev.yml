@@ -21,7 +21,7 @@ services:
       start_period: 30s
 
   minio:
-    image: minio/minio:latest
+    image: minio/minio
     container_name: ${COMPOSE_PROJECT_NAME:-nest-isle}-minio
     restart: unless-stopped
     command: server /data --console-address ":9001"
@@ -41,7 +41,7 @@ services:
       start_period: 30s
 
   redis:
-    image: redis:latest
+    image: redis
     container_name: ${COMPOSE_PROJECT_NAME:-nest-isle}-redis
     restart: unless-stopped
     ports:

@@ -4,7 +4,7 @@ import { CacheService } from '../../core/cache/cache.service';
 import { SearchRegistry } from './provider/search.registry';
 import { SearchHistoryService } from './history/search-history.service';
 import { SearchItem } from './provider/provider.interface';
-import { LoggerService } from '../../core/logger/logger.service';
+import { LoggerService } from '../../core/observability/logger/logger.service';
 
 @Injectable()
 export class SearchService {

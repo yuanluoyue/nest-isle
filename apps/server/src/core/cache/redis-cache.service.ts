@@ -2,7 +2,7 @@ import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 import { CacheService } from './cache.service';
-import { LoggerService } from '../logger/logger.service';
+import { LoggerService } from '../observability/logger/logger.service';
 
 @Injectable()
 export class RedisCacheService extends CacheService implements OnModuleDestroy {

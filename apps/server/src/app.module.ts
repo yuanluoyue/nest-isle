@@ -8,7 +8,9 @@ import { AuthModule } from './core/auth/auth.module';
 import { JwtAuthGuard } from './core/auth/jwt-auth.guard';
 import { PermissionsGuard } from './core/auth/permissions.guard';
 import { CacheModule } from './core/cache/cache.module';
-import { LoggerModule } from './core/logger/logger.module';
+import { LoggerModule } from './core/observability/logger/logger.module';
+import { MetricsModule } from './core/observability/metrics/metrics.module';
+import { TracingModule } from './core/observability/tracing/tracing.module';
 import { QueueModule } from './core/queue/queue.module';
 import { StorageModule } from './core/storage/storage.module';
 import { AuthFeatureModule } from './modules/auth/auth.module';
@@ -20,7 +22,7 @@ import { AiModule } from './modules/ai/ai.module';
 import { FormFeatureModule } from './modules/form/form.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { SearchModule } from './modules/search/search.module';
-import { TraceIdMiddleware } from './common/middleware/trace-id.middleware';
+import { LoggerMiddleware } from './core/observability/logger/logger.middleware';
 
 @Module({
   imports: [
@@ -33,6 +35,8 @@ import { TraceIdMiddleware } from './common/middleware/trace-id.middleware';
     HealthModule,
     CacheModule,
     LoggerModule,
+    MetricsModule,
+    TracingModule,
     QueueModule,
     StorageModule,
     AuthModule,
@@ -60,6 +64,6 @@ import { TraceIdMiddleware } from './common/middleware/trace-id.middleware';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(TraceIdMiddleware).forRoutes('*');
+    consumer.apply(LoggerMiddleware).forRoutes('*');
   }
 }

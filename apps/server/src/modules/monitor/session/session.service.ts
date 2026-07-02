@@ -3,7 +3,7 @@ import { eq, and, ilike, desc, SQL, isNull } from 'drizzle-orm';
 import { sysSession } from '../../../database/schema';
 import { DatabaseService } from '../../../database/database.service';
 import { CacheService } from '../../../core/cache/cache.service';
-import { LoggerService } from '../../../core/logger/logger.service';
+import { LoggerService } from '../../../core/observability/logger/logger.service';
 import { QuerySessionDto } from './dto/query-session.dto';
 import { UAParser } from 'ua-parser-js';
 
@@ -19,13 +19,15 @@ interface CachedSession {
 
 @Injectable()
 export class SessionService {
-  private logger = this.loggerService.child('Session');
+  private logger: LoggerService;
 
   constructor(
     private databaseService: DatabaseService,
     private cacheService: CacheService,
     private loggerService: LoggerService,
-  ) {}
+  ) {
+    this.logger = loggerService.child('Session');
+  }
 
   private get db() {
     return this.databaseService.db;

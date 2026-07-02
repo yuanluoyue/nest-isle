@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Server } from 'socket.io';
-import { LoggerService } from '../logger/logger.service';
+import { LoggerService } from '../observability/logger/logger.service';
 
 @Injectable()
 export class WsService {

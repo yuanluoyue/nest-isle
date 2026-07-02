@@ -1,0 +1,31 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # 采集 NestJS 服务端 JSON 日志
+  - job_name: nest-isle-server
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: nest-isle-server
+          app: nest-isle
+          __path__: /var/log/server/combined/*.log
+
+  # 采集错误日志（单独标记）
+  - job_name: nest-isle-server-error
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: nest-isle-server
+          app: nest-isle
+          level: error
+          __path__: /var/log/server/error/*.log

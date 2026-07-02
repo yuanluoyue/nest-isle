@@ -10,7 +10,7 @@ import { WsService } from '../../core/gateway/ws.service';
 import { QueueService } from '../../core/queue/queue.service';
 import { NotificationEvent } from '../../core/event/event.service';
 import { QueryNotificationDto } from './dto/query-notification.dto';
-import { LoggerService } from '../../core/logger/logger.service';
+import { LoggerService } from '../../core/observability/logger/logger.service';
 
 @Injectable()
 export class NotificationService {

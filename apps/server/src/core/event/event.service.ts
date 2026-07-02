@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { LoggerService } from '../logger/logger.service';
+import { LoggerService } from '../observability/logger/logger.service';
 
 export interface NotificationEvent {
   type: string;

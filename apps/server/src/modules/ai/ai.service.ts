@@ -7,7 +7,7 @@ import { ProviderService } from './provider/provider.service';
 import { ModelService } from './model/model.service';
 import { LogService } from './log/log.service';
 import { createAiClient } from './utils/create-ai-client';
-import { LoggerService } from '../../core/logger/logger.service';
+import { LoggerService } from '../../core/observability/logger/logger.service';
 
 @Injectable()
 export class AiService {
