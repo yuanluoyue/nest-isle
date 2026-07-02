@@ -1,6 +1,7 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Queue, Worker, QueueEvents } from 'bullmq';
+import { LoggerService } from '../logger/logger.service';
 
 @Injectable()
 export class QueueService implements OnModuleDestroy {
@@ -14,8 +15,13 @@ export class QueueService implements OnModuleDestroy {
   private queues = new Map<string, Queue>();
   private workers = new Map<string, Worker>();
   private queueEvents = new Map<string, QueueEvents>();
+  private readonly logger: LoggerService;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    loggerService: LoggerService,
+  ) {
+    this.logger = loggerService.child('Queue');
     this.connection = {
       host: this.configService.get<string>('redis.host', 'localhost'),
       port: this.configService.get<number>('redis.port', 6379),
@@ -28,6 +34,11 @@ export class QueueService implements OnModuleDestroy {
   getQueue(name: string): Queue {
     if (!this.queues.has(name)) {
       this.queues.set(name, new Queue(name, { connection: this.connection }));
+      this.logger.info({
+        action: 'QueueCreated',
+        message: 'Queue created',
+        data: { name },
+      });
     }
     return this.queues.get(name)!;
   }
@@ -41,6 +52,25 @@ export class QueueService implements OnModuleDestroy {
       concurrency: 5,
     });
     this.workers.set(name, worker);
+    this.logger.info({
+      action: 'WorkerCreated',
+      message: 'Worker created',
+      data: { name },
+    });
+    worker.on('completed', (job) => {
+      this.logger.info({
+        action: 'JobCompleted',
+        message: 'Job completed',
+        data: { name, jobId: job.id },
+      });
+    });
+    worker.on('failed', (job, err) => {
+      this.logger.error({
+        action: 'JobFailed',
+        message: 'Job failed',
+        data: { name, jobId: job?.id, error: err.message },
+      });
+    });
     return worker;
   }
 

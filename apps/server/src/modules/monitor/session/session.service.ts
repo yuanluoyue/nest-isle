@@ -1,8 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { eq, and, ilike, desc, SQL } from 'drizzle-orm';
+import { eq, and, ilike, desc, SQL, isNull } from 'drizzle-orm';
 import { sysSession } from '../../../database/schema';
 import { DatabaseService } from '../../../database/database.service';
 import { CacheService } from '../../../core/cache/cache.service';
+import { LoggerService } from '../../../core/logger/logger.service';
 import { QuerySessionDto } from './dto/query-session.dto';
 import { UAParser } from 'ua-parser-js';
 
@@ -18,9 +19,12 @@ interface CachedSession {
 
 @Injectable()
 export class SessionService {
+  private logger = this.loggerService.child('Session');
+
   constructor(
     private databaseService: DatabaseService,
     private cacheService: CacheService,
+    private loggerService: LoggerService,
   ) {}
 
   private get db() {
@@ -35,6 +39,9 @@ export class SessionService {
     userAgent?: string | null;
   }) {
     const { userId, userType, ip, userAgent } = params;
+
+    // 使同用户的旧 session 全部失效（踢掉旧设备）
+    await this.invalidateUserSessions(userId);
 
     // 解析 UA
     let browser: string | null = null;
@@ -180,5 +187,35 @@ export class SessionService {
       .update(sysSession)
       .set({ logoutAt: new Date() })
       .where(eq(sysSession.sid, sid));
+  }
+
+  /** 使某用户所有活跃 session 失效 */
+  private async invalidateUserSessions(userId: string) {
+    const activeSessions = await this.db.query.sysSession.findMany({
+      where: and(
+        eq(sysSession.userId, userId),
+        isNull(sysSession.logoutAt),
+      ),
+      columns: { id: true, sid: true },
+    });
+
+    if (activeSessions.length === 0) return;
+
+    // 批量删除 Redis 缓存 + 标记数据库 logoutAt
+    await Promise.all(
+      activeSessions.map(async (s) => {
+        await this.cacheService.del(`${SESSION_PREFIX}${s.sid}`).catch(() => {});
+        await this.db
+          .update(sysSession)
+          .set({ logoutAt: new Date() })
+          .where(eq(sysSession.id, s.id));
+      }),
+    );
+
+    this.logger.info({
+      action: 'InvalidateOldSessions',
+      message: 'Invalidated old sessions for user',
+      data: { userId, count: activeSessions.length },
+    });
   }
 }

@@ -1,20 +1,24 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import { sysAiLog } from '../../../database/schema';
 import { DatabaseService } from '../../../database/database.service';
 import { ProviderService } from '../provider/provider.service';
 import { ModelService } from '../model/model.service';
 import { createAiClient } from '../utils/create-ai-client';
+import { LoggerService } from '../../../core/logger/logger.service';
 
 @Injectable()
 export class PlaygroundService {
-  private readonly logger = new Logger(PlaygroundService.name);
+  private readonly logger: LoggerService;
 
   constructor(
     private databaseService: DatabaseService,
     private providerService: ProviderService,
     private modelService: ModelService,
-  ) {}
+    loggerService: LoggerService,
+  ) {
+    this.logger = loggerService.child('AI');
+  }
 
   private get db() {
     return this.databaseService.db;
@@ -38,6 +42,12 @@ export class PlaygroundService {
     const client = createAiClient(provider);
 
     const startTime = Date.now();
+
+    this.logger.info({
+      action: 'StreamStart',
+      message: 'AI stream start',
+      data: { model: model.name },
+    });
 
     const stream = await client.chat.completions.create({
       model: model.name,
@@ -74,6 +84,12 @@ export class PlaygroundService {
       } finally {
         const duration = Date.now() - startTime;
 
+        this.logger.info({
+          action: 'StreamEnd',
+          message: 'AI stream end',
+          data: { model: model.name, duration, totalTokens },
+        });
+
         // If no usage info from stream, estimate tokens
         if (totalTokens === 0) {
           promptTokens = Math.ceil(
@@ -99,7 +115,11 @@ export class PlaygroundService {
             status: 0,
           });
         } catch (error) {
-          logger.error(`Failed to write AI log: ${(error as Error).message}`);
+          logger.error({
+            action: 'LogWriteFailed',
+            message: 'Failed to write AI log',
+            data: { error: (error as Error).message },
+          });
         }
       }
     };

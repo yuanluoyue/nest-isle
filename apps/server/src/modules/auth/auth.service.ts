@@ -21,6 +21,7 @@ import { FileService } from '../file/file.service';
 import { LoginLogService } from '../monitor/login-log/login-log.service';
 import { SessionService } from '../monitor/session/session.service';
 import { buildMenuTree } from './menu-tree.util';
+import { LoggerService } from '../../core/logger/logger.service';
 
 export interface LoginContext {
   ip?: string | null;
@@ -36,6 +37,8 @@ interface CustomJwtPayload {
 
 @Injectable()
 export class AuthService {
+  private readonly logger: LoggerService;
+
   constructor(
     private jwtService: JwtService,
     private configService: ConfigService,
@@ -44,7 +47,10 @@ export class AuthService {
     private fileService: FileService,
     private loginLogService: LoginLogService,
     private sessionService: SessionService,
-  ) {}
+    loggerService: LoggerService,
+  ) {
+    this.logger = loggerService.child('Auth');
+  }
 
   private get db() {
     return this.databaseService.db;
@@ -71,6 +77,11 @@ export class AuthService {
     });
 
     if (!user || !user.password || !compareSync(dto.password, user.password)) {
+      this.logger.warn({
+        action: 'LoginFailed',
+        message: 'Login failed - wrong password',
+        data: { username: dto.username },
+      });
       await this.loginLogService.record({
         userId: user?.id ?? null,
         username: dto.username,
@@ -116,6 +127,12 @@ export class AuthService {
       userAgent,
       status: 0,
       message: '登录成功',
+    });
+
+    this.logger.info({
+      action: 'Login',
+      message: 'User login',
+      data: { userId: user.id, username: dto.username },
     });
 
     return {
@@ -203,6 +220,12 @@ export class AuthService {
       const { accessToken, refreshToken: newRefreshToken } =
         this.generateTokens(payload.sub, payload.sid, payload.type);
 
+      this.logger.info({
+        action: 'RefreshToken',
+        message: 'Token refreshed',
+        data: { userId: payload.sub },
+      });
+
       return {
         accessToken,
         refreshToken: newRefreshToken,
@@ -216,6 +239,11 @@ export class AuthService {
   /** 登出 */
   async logout(sid: string) {
     await this.sessionService.logout(sid);
+    this.logger.info({
+      action: 'Logout',
+      message: 'User logout',
+      data: { userId: sid },
+    });
   }
 
   private generateTokens(userId: string, sid: string, type: string) {

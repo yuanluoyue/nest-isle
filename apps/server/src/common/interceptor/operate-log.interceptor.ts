@@ -13,13 +13,19 @@ import {
 } from '../decorator/operate-log.decorator';
 import { DatabaseService } from '../../database/database.service';
 import { sysOperateLog } from '../../database/schema';
+import { LoggerService } from '../../core/logger/logger.service';
 
 @Injectable()
 export class OperateLogInterceptor implements NestInterceptor {
+  private readonly logger: LoggerService;
+
   constructor(
     private reflector: Reflector,
     private databaseService: DatabaseService,
-  ) {}
+    loggerService: LoggerService,
+  ) {
+    this.logger = loggerService.child('OperateLog');
+  }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const logOptions = this.reflector.get<OperateLogOptions | undefined>(
@@ -84,8 +90,13 @@ export class OperateLogInterceptor implements NestInterceptor {
   }) {
     try {
       await this.databaseService.db.insert(sysOperateLog).values(data);
-    } catch {
+    } catch (err) {
       // 日志写入失败不影响业务
+      this.logger.error({
+        action: 'SaveFailed',
+        message: 'Failed to save operation log',
+        data: { error: (err as Error).message },
+      });
     }
   }
 }

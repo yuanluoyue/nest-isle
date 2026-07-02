@@ -1,13 +1,14 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PermissionService } from '../../core/auth/permission.service';
 import { CacheService } from '../../core/cache/cache.service';
 import { SearchRegistry } from './provider/search.registry';
 import { SearchHistoryService } from './history/search-history.service';
 import { SearchItem } from './provider/provider.interface';
+import { LoggerService } from '../../core/logger/logger.service';
 
 @Injectable()
 export class SearchService {
-  private readonly logger = new Logger(SearchService.name);
+  private readonly logger: LoggerService;
   private readonly CACHE_TTL = 300; // 5 分钟缓存
 
   constructor(
@@ -15,7 +16,10 @@ export class SearchService {
     private permissionService: PermissionService,
     private historyService: SearchHistoryService,
     private cacheService: CacheService,
-  ) {}
+    loggerService: LoggerService,
+  ) {
+    this.logger = loggerService.child('Search');
+  }
 
   async search(
     keyword: string,
@@ -26,6 +30,11 @@ export class SearchService {
     const cacheKey = `search:${userId}:${keyword}:${providers?.join(',') ?? 'all'}`;
     const cached = await this.cacheService.get(cacheKey);
     if (cached) {
+      this.logger.debug({
+        action: 'CacheHit',
+        message: 'Search cache hit',
+        data: { keyword },
+      });
       return JSON.parse(cached);
     }
 
@@ -38,11 +47,17 @@ export class SearchService {
       ? allProviders.filter((p) => providers.includes(p.name))
       : allProviders;
 
+    const searchStartTime = Date.now();
+
     // 并行搜索
     const results = await Promise.all(
       targetProviders.map((p) =>
         p.search(keyword, userId, permissions).catch((err) => {
-          this.logger.warn(`Search provider "${p.name}" failed: ${err.message}`);
+          this.logger.warn({
+            action: 'ProviderFailed',
+            message: `Search provider "${p.name}" failed`,
+            data: { error: err.message },
+          });
           return [];
         }),
       ),
@@ -52,6 +67,13 @@ export class SearchService {
     const items = results
       .flat()
       .sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+
+    const duration = Date.now() - searchStartTime;
+    this.logger.info({
+      action: 'Search',
+      message: 'Search completed',
+      data: { keyword, resultCount: items.length, duration },
+    });
 
     // 写入缓存
     await this.cacheService

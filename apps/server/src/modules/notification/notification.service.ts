@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { eq, and, desc, SQL, sql } from 'drizzle-orm';
 import {
   sysNotification,
@@ -10,17 +10,21 @@ import { WsService } from '../../core/gateway/ws.service';
 import { QueueService } from '../../core/queue/queue.service';
 import { NotificationEvent } from '../../core/event/event.service';
 import { QueryNotificationDto } from './dto/query-notification.dto';
+import { LoggerService } from '../../core/logger/logger.service';
 
 @Injectable()
 export class NotificationService {
-  private readonly logger = new Logger(NotificationService.name);
+  private readonly logger: LoggerService;
 
   constructor(
     private databaseService: DatabaseService,
     private eventService: EventService,
     private wsService: WsService,
     private queueService: QueueService,
-  ) {}
+    loggerService: LoggerService,
+  ) {
+    this.logger = loggerService.child('Notification');
+  }
 
   private get db() {
     return this.databaseService.db;
@@ -93,6 +97,12 @@ export class NotificationService {
     const receiver = await this.findOne(id, userId);
     if (receiver.status === 'read') return receiver;
 
+    this.logger.info({
+      action: 'Read',
+      message: 'Notification marked as read',
+      data: { id },
+    });
+
     const [updated] = await this.db
       .update(sysNotificationReceiver)
       .set({ status: 'read', readAt: new Date() })
@@ -102,6 +112,11 @@ export class NotificationService {
   }
 
   async markAllAsRead(userId: string) {
+    this.logger.info({
+      action: 'ReadAll',
+      message: 'All notifications marked as read',
+      data: { userId },
+    });
     await this.db
       .update(sysNotificationReceiver)
       .set({ status: 'read', readAt: new Date() })
@@ -115,6 +130,11 @@ export class NotificationService {
 
   async remove(id: string, userId: string) {
     await this.findOne(id, userId);
+    this.logger.info({
+      action: 'Delete',
+      message: 'Notification deleted',
+      data: { id },
+    });
     await this.db
       .delete(sysNotificationReceiver)
       .where(eq(sysNotificationReceiver.id, id));
@@ -156,8 +176,10 @@ export class NotificationService {
       });
     }
 
-    this.logger.log(
-      `Notification sent: ${notification.id} to ${data.receiverIds.length} receivers`,
-    );
+    this.logger.info({
+      action: 'Create',
+      message: 'Notification created',
+      data: { id: notification.id, receiverCount: data.receiverIds.length },
+    });
   }
 }

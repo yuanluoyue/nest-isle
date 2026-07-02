@@ -1,28 +1,33 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { and, eq, isNull, sum } from 'drizzle-orm';
 import { sysFile } from '../../database/schema';
 import { DatabaseService } from '../../database/database.service';
 import { StorageAdapter } from '../../core/storage/storage.adapter';
 import type { UploadedFile } from '../../types/uploaded-file';
+import { LoggerService } from '../../core/logger/logger.service';
 
 @Injectable()
 export class FileService {
   private readonly bucket: string;
-  private readonly logger = new Logger(FileService.name);
+  private readonly logger: LoggerService;
 
   constructor(
     private configService: ConfigService,
     private databaseService: DatabaseService,
     private storageAdapter: StorageAdapter,
+    loggerService: LoggerService,
   ) {
+    this.logger = loggerService.child('File');
     this.bucket = this.configService.get<string>('minio.bucket')!;
 
     // 启动时确保 bucket 存在
     this.storageAdapter.ensureBucket(this.bucket).catch((err: unknown) => {
-      this.logger.error(
-        `Failed to ensure bucket: ${err instanceof Error ? err.message : String(err)}`,
-      );
+      this.logger.error({
+        action: 'EnsureBucketFailed',
+        message: 'Failed to ensure bucket',
+        data: { err: err instanceof Error ? err.message : String(err) },
+      });
     });
   }
 
@@ -59,6 +64,12 @@ export class FileService {
       })
       .returning();
 
+    this.logger.info({
+      action: 'Upload',
+      message: 'File uploaded',
+      data: { url: result.url, size: result.size },
+    });
+
     return record;
   }
 
@@ -79,7 +90,11 @@ export class FileService {
     });
 
     if (!record) {
-      this.logger.warn(`File record not found for url: ${url}`);
+      this.logger.warn({
+        action: 'DeleteNotFound',
+        message: 'File record not found',
+        data: { url },
+      });
       return;
     }
 
@@ -92,10 +107,22 @@ export class FileService {
       try {
         await this.storageAdapter.removeObject(record.bucket, record.path);
       } catch (error) {
-        this.logger.error(
-          `Failed to remove storage object ${record.bucket}/${record.path}: ${error instanceof Error ? error.message : String(error)}`,
-        );
+        this.logger.error({
+          action: 'RemoveObjectFailed',
+          message: 'Failed to remove storage object',
+          data: {
+            bucket: record.bucket,
+            path: record.path,
+            error: error instanceof Error ? error.message : String(error),
+          },
+        });
       }
     }
+
+    this.logger.info({
+      action: 'Delete',
+      message: 'File deleted',
+      data: { url },
+    });
   }
 }

@@ -7,6 +7,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { WsService } from './ws.service';
+import { LoggerService } from '../logger/logger.service';
 
 @WebSocketGateway({
   cors: { origin: '*', credentials: true },
@@ -18,10 +19,21 @@ export class WsGateway
   @WebSocketServer()
   server!: Server;
 
-  constructor(private wsService: WsService) {}
+  private readonly logger: LoggerService;
+
+  constructor(
+    private wsService: WsService,
+    loggerService: LoggerService,
+  ) {
+    this.logger = loggerService.child('WebSocket');
+  }
 
   afterInit() {
     this.wsService.setServer(this.server);
+    this.logger.info({
+      action: 'GatewayStarted',
+      message: 'WebSocket gateway started',
+    });
   }
 
   handleConnection(client: Socket) {
@@ -31,9 +43,19 @@ export class WsGateway
     if (userId) {
       void client.join(`user:${userId}`);
     }
+    this.logger.info({
+      action: 'Connected',
+      message: 'Client connected',
+      data: { userId, socketId: client.id },
+    });
   }
 
-  handleDisconnect() {
+  handleDisconnect(client: Socket) {
     // 用户断开连接时，Socket.io 自动清理房间
+    this.logger.info({
+      action: 'Disconnected',
+      message: 'Client disconnected',
+      data: { socketId: client.id },
+    });
   }
 }

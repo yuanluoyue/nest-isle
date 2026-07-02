@@ -11,17 +11,19 @@ import { IoAdapter } from '@nestjs/platform-socket.io';
 import fastifyMultipart from '@fastify/multipart';
 import { AppModule } from './app.module';
 import { TransformInterceptor } from './common/interceptor/transform.interceptor';
-import { AllExceptionsFilter } from './common/filter/all-exceptions.filter';
 import { OperateLogInterceptor } from './common/interceptor/operate-log.interceptor';
-import { winstonLoggerConfig } from './core/logger/winston.config';
 import { DatabaseService } from './database/database.service';
+import { LoggerService } from './core/logger/logger.service';
+import { LoggerInterceptor } from './core/logger/logger.interceptor';
+import { LogExceptionFilter } from './core/logger/exception.filter';
+import { createWinstonConfig } from './core/logger/logger.factory';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter(),
     {
-      logger: WinstonModule.createLogger(winstonLoggerConfig),
+      logger: WinstonModule.createLogger(createWinstonConfig()),
     },
   );
 
@@ -44,11 +46,16 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
+  const loggerService = app.get(LoggerService);
+  const logger = loggerService.child('Lifecycle');
+
   app.useGlobalInterceptors(
+    new LoggerInterceptor(loggerService),
     new TransformInterceptor(),
-    new OperateLogInterceptor(app.get(Reflector), app.get(DatabaseService)),
+    new OperateLogInterceptor(app.get(Reflector), app.get(DatabaseService), loggerService),
   );
-  app.useGlobalFilters(new AllExceptionsFilter());
+  app.useGlobalFilters(new LogExceptionFilter(loggerService));
 
   const appConfig = app.get(ConfigService);
   const appName = appConfig.get<string>('appName') ?? 'NestIsle';
@@ -68,7 +75,7 @@ async function bootstrap() {
   const port = process.env.PORT ?? 3000;
   await app.listen(port, '0.0.0.0');
 
-  console.log(`🚀 Application is running on: http://localhost:${port}/api`);
+  logger.info({ action: 'Started', message: `Application started on http://localhost:${port}/api` });
 }
 
 void bootstrap();
